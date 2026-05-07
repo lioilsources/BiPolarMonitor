@@ -1,0 +1,32 @@
+# Listens on port 8080 — Cloudflare Tunnel sends HTTPS traffic here
+:8080 {
+    # Max upload size for video files
+    request_body {
+        max_size 200MB
+    }
+
+    reverse_proxy /api/* bipolar_api:8000 {
+        header_up X-Real-IP {remote_host}
+        header_up X-Forwarded-Proto https
+        # Generous timeout for multipart video upload
+        transport http {
+            dial_timeout 10s
+            response_header_timeout 300s
+        }
+    }
+
+    header {
+        Strict-Transport-Security "max-age=31536000; includeSubDomains"
+        X-Content-Type-Options "nosniff"
+        X-Frame-Options "DENY"
+        -Server
+    }
+
+    log {
+        output file /var/log/caddy/bipolar.log {
+            roll_size 50mb
+            roll_keep 5
+        }
+        format json
+    }
+}

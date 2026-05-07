@@ -1,0 +1,69 @@
+version: "3.9"
+
+# NAS (Ubuntu) — data layer: PostgreSQL 16 + MinIO
+# Access: DGX Spark connects via internal LAN (192.168.x.x)
+# NEVER exposed to internet
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: bipolar_postgres
+    restart: unless-stopped
+    environment:
+      - POSTGRES_DB=bipolar
+      - POSTGRES_USER=bipolar
+      - POSTGRES_PASSWORD=${PG_PASSWORD}
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    ports:
+      - "127.0.0.1:5432:5432"   # LAN only — firewall blocks external
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U bipolar -d bipolar"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  minio:
+    image: minio/minio:latest
+    container_name: bipolar_minio
+    restart: unless-stopped
+    command: server /data --console-address ":9001"
+    environment:
+      - MINIO_ROOT_USER=${MINIO_USER}
+      - MINIO_ROOT_PASSWORD=${MINIO_PASS}
+    volumes:
+      - minio_data:/data
+    ports:
+      - "127.0.0.1:9000:9000"   # S3 API — LAN only
+      - "127.0.0.1:9001:9001"   # Console — LAN only
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Automated backup to a second NAS or offsite
+  backup:
+    image: prodrigestivill/postgres-backup-local
+    container_name: bipolar_backup
+    restart: unless-stopped
+    environment:
+      - POSTGRES_HOST=postgres
+      - POSTGRES_DB=bipolar
+      - POSTGRES_USER=bipolar
+      - POSTGRES_PASSWORD=${PG_PASSWORD}
+      - SCHEDULE=0 3 * * *        # 3am daily
+      - BACKUP_KEEP_DAYS=30
+      - BACKUP_KEEP_WEEKS=8
+      - BACKUP_KEEP_MONTHS=6
+    volumes:
+      - pg_backups:/backups
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+volumes:
+  pg_data:
+  minio_data:
+  pg_backups:

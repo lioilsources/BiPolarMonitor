@@ -1,0 +1,54 @@
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+dist/
+build/
+.venv/
+venv/
+env/
+.env
+*.env
+
+# Model cache (large, not versioned)
+backend/ml/models/*.bin
+backend/ml/models/*.pt
+backend/ml/models/*.safetensors
+**/model_cache/
+
+# Flutter
+flutter/bipolar_monitor/.dart_tool/
+flutter/bipolar_monitor/.flutter-plugins
+flutter/bipolar_monitor/.flutter-plugins-dependencies
+flutter/bipolar_monitor/build/
+flutter/bipolar_monitor/.packages
+flutter/bipolar_monitor/pubspec.lock
+flutter/bipolar_monitor/android/
+flutter/bipolar_monitor/ios/
+flutter/bipolar_monitor/linux/
+flutter/bipolar_monitor/macos/
+flutter/bipolar_monitor/windows/
+flutter/bipolar_monitor/web/
+
+# Secrets
+*.pem
+*.key
+*-creds.json
+backend/.env
+nas/.env
+
+# Logs
+*.log
+logs/
+
+# Docker volumes (local)
+pg_data/
+minio_data/
