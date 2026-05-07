@@ -2,8 +2,11 @@ import asyncio
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from slowapi import _rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
 
 from database import engine, Base, AsyncSessionLocal
+from rate_limit import limiter
 from routers import auth, measurements, dialog, user
 from routers.push import router as push_router
 from tasks.retention import run_retention_loop
@@ -30,6 +33,8 @@ app = FastAPI(
     docs_url="/docs",
     redoc_url=None,
 )
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 app.add_middleware(
     CORSMiddleware,

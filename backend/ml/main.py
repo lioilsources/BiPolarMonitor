@@ -22,7 +22,9 @@ from pipeline.video_analyzer import analyze_video, facial_zscore_features, _try_
 from pipeline.cohesion import analyze_cohesion
 from pipeline.scoring import compute_scores, compute_trend, update_baseline
 from pipeline.speaker import verify_speaker
+from pipeline.face_embedder import extract_frame, verify_face
 from routers.speaker_router import router as speaker_router
+from routers.face_router import router as face_router
 
 DATABASE_URL = os.environ["DATABASE_URL"]
 MINIO_ENDPOINT = os.environ["MINIO_ENDPOINT"]
@@ -48,6 +50,7 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(title="BipolarMonitor ML Service", lifespan=lifespan)
 app.include_router(speaker_router)
+app.include_router(face_router)
 
 
 class AnalyzeRequest(BaseModel):
@@ -83,13 +86,14 @@ async def _run_pipeline(measurement_id: str, video_path: str, audio_path: str):
             questions_used = json.loads(m.questions_used)
             question_timings = json.loads(m.question_timings) if m.question_timings else None
 
-            # Load user speaker embedding for verification
+            # Load user speaker and face embeddings for verification
             speaker_row = await db.execute(
-                text("SELECT speaker_embedding FROM users WHERE id = :uid"),
+                text("SELECT speaker_embedding, face_embedding FROM users WHERE id = :uid"),
                 {"uid": user_id},
             )
             user_row = speaker_row.fetchone()
             stored_embedding = json.loads(user_row.speaker_embedding) if user_row and user_row.speaker_embedding else None
+            stored_face_embedding = json.loads(user_row.face_embedding) if user_row and user_row.face_embedding else None
 
             # Download files from MinIO
             minio = _get_minio()
@@ -110,6 +114,30 @@ async def _run_pipeline(measurement_id: str, video_path: str, audio_path: str):
                         text("UPDATE measurements SET speaker_verified=:v, speaker_similarity=:s WHERE id=:id"),
                         {"v": speaker_verified, "s": speaker_similarity, "id": measurement_id},
                     )
+
+                # Face verification
+                if stored_face_embedding:
+                    frame_path = extract_frame(video_local, second=2.0)
+                    if frame_path:
+                        fv = verify_face(frame_path, stored_face_embedding)
+                        print(
+                            f"[ML] Face verification for {measurement_id}: "
+                            f"verified={fv['verified']} similarity={fv['similarity']}"
+                        )
+                        await db.execute(
+                            text(
+                                "UPDATE measurements SET face_verified=:fv, face_similarity=:fs WHERE id=:id"
+                            ),
+                            {"fv": fv["verified"], "fs": fv["similarity"], "id": measurement_id},
+                        )
+                        # Clean up temp frame file
+                        try:
+                            import os as _os
+                            _os.unlink(frame_path)
+                        except Exception:
+                            pass
+                    else:
+                        print(f"[ML] Face verification skipped for {measurement_id}: could not extract frame")
 
                 # Run analysis pipelines
                 audio_features = analyze_audio(audio_local, question_timings)

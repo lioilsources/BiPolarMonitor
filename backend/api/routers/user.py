@@ -7,6 +7,7 @@ from database import get_db
 from middleware.auth_middleware import get_current_user
 from models.user import User
 
+
 router = APIRouter(prefix="/user", tags=["user"])
 
 
@@ -16,6 +17,7 @@ class ProfileResponse(BaseModel):
     display_name: str
     total_measurements: int
     has_speaker_embedding: bool
+    has_face_embedding: bool
     enrolled_at: str | None
 
 
@@ -27,6 +29,10 @@ class SpeakerEnrollmentRequest(BaseModel):
     embedding: list[float]  # Speaker embedding vector from enrollment audio
 
 
+class FaceEnrollmentRequest(BaseModel):
+    embedding: list[float]  # Face embedding vector from enrollment images
+
+
 @router.get("/profile", response_model=ProfileResponse)
 async def get_profile(current_user: User = Depends(get_current_user)):
     return ProfileResponse(
@@ -35,6 +41,7 @@ async def get_profile(current_user: User = Depends(get_current_user)):
         display_name=current_user.display_name,
         total_measurements=current_user.total_measurements,
         has_speaker_embedding=current_user.speaker_embedding is not None,
+        has_face_embedding=current_user.face_embedding is not None,
         enrolled_at=current_user.enrolled_at.isoformat() if current_user.enrolled_at else None,
     )
 
@@ -50,6 +57,18 @@ async def update_profile(
     await db.commit()
     await db.refresh(current_user)
     return await get_profile(current_user)
+
+
+@router.post("/enroll-face", status_code=200)
+async def enroll_face(
+    body: FaceEnrollmentRequest,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """Store face embedding from enrollment images (computed by ML service)."""
+    current_user.face_embedding = json.dumps(body.embedding)
+    await db.commit()
+    return {"enrolled": True}
 
 
 @router.post("/enroll-speaker", status_code=200)

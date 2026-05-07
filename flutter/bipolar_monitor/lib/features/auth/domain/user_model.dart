@@ -4,6 +4,7 @@ class UserModel {
   final String displayName;
   final int totalMeasurements;
   final bool hasSpeakerEmbedding;
+  final bool hasFaceEmbedding;
   final String? enrolledAt;
 
   const UserModel({
@@ -12,6 +13,7 @@ class UserModel {
     required this.displayName,
     required this.totalMeasurements,
     required this.hasSpeakerEmbedding,
+    this.hasFaceEmbedding = false,
     this.enrolledAt,
   });
 
@@ -20,7 +22,8 @@ class UserModel {
         email: json['email'] as String,
         displayName: json['display_name'] as String,
         totalMeasurements: json['total_measurements'] as int,
-        hasSpeakerEmbedding: json['has_speaker_embedding'] as bool,
+        hasSpeakerEmbedding: json['has_speaker_embedding'] as bool? ?? false,
+        hasFaceEmbedding: json['has_face_embedding'] as bool? ?? false,
         enrolledAt: json['enrolled_at'] as String?,
       );
 }

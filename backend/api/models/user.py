@@ -13,6 +13,7 @@ class User(Base):
     display_name: Mapped[str] = mapped_column(String, nullable=False)
     hashed_password: Mapped[str] = mapped_column(String, nullable=False)
     speaker_embedding: Mapped[str | None] = mapped_column(Text, nullable=True)  # JSON float array
+    face_embedding: Mapped[str | None] = mapped_column(Text, nullable=True)  # JSON float array
     total_measurements: Mapped[int] = mapped_column(Integer, default=0)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
     enrolled_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)

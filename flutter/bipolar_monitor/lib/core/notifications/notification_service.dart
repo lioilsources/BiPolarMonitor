@@ -4,6 +4,9 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+// Navigation key — set by app_router, used for deep links from notifications
+typedef NotificationTapCallback = void Function(String route);
+
 // Background FCM handler — must be top-level
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
@@ -14,6 +17,9 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 final notificationServiceProvider = Provider<NotificationService>((ref) {
   return NotificationService();
 });
+
+// Stream of notification-driven routes — app_router subscribes to this
+final notificationRouteProvider = StateProvider<String?>((ref) => null);
 
 class NotificationService {
   static final _localNotifications = FlutterLocalNotificationsPlugin();
@@ -30,8 +36,10 @@ class NotificationService {
     importance: Importance.low,
   );
 
+  // Set by main.dart after ProviderContainer is created
+  static NotificationTapCallback? onTap;
+
   Future<void> initialize() async {
-    // Local notifications
     const initSettings = InitializationSettings(
       android: AndroidInitializationSettings('@mipmap/ic_launcher'),
       iOS: DarwinInitializationSettings(
@@ -45,22 +53,27 @@ class NotificationService {
       onDidReceiveNotificationResponse: _onNotificationTap,
     );
 
-    // Create channels (Android)
     final androidPlugin = _localNotifications
         .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
     await androidPlugin?.createNotificationChannel(_channelAnalysis);
     await androidPlugin?.createNotificationChannel(_channelReminder);
 
-    // FCM
     FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
     FirebaseMessaging.onMessage.listen(_onForegroundMessage);
-    FirebaseMessaging.onMessageOpenedApp.listen(_onNotificationOpenedApp);
 
-    // Request permission
+    // App opened from terminated state via notification
+    final initial = await FirebaseMessaging.instance.getInitialMessage();
+    if (initial != null) {
+      _routeFromMessage(initial);
+    }
+
+    // App opened from background state via notification
+    FirebaseMessaging.onMessageOpenedApp.listen(_routeFromMessage);
+
     await FirebaseMessaging.instance.requestPermission(
       alert: true,
       badge: true,
-      sound: false, // no sound — mental health app
+      sound: false,
     );
   }
 
@@ -68,21 +81,15 @@ class NotificationService {
 
   Future<void> scheduleReminder({required int hour, required int minute}) async {
     await _localNotifications.cancelAll();
-
-    // Daily reminder — using zonedSchedule for exact time
-    // (requires timezone package in production)
     await _localNotifications.show(
       1,
       'Čas na nahrávku',
-      'Dávno jsme se neviděli. Chceš si povídat?',
+      'Chceš si dnes povídat?',
       NotificationDetails(
         android: AndroidNotificationDetails(
-          _channelReminder.id,
-          _channelReminder.name,
+          _channelReminder.id, _channelReminder.name,
           channelDescription: _channelReminder.description,
-          importance: Importance.low,
-          priority: Priority.low,
-          silent: true,
+          importance: Importance.low, priority: Priority.low, silent: true,
         ),
         iOS: const DarwinNotificationDetails(presentSound: false),
       ),
@@ -97,16 +104,14 @@ class NotificationService {
     final body = message.notification?.body ?? '';
 
     await _localNotifications.show(
-      data['measurement_id'].hashCode,
+      data['measurement_id']?.hashCode ?? title.hashCode,
       title,
       body,
       NotificationDetails(
         android: AndroidNotificationDetails(
-          _channelAnalysis.id,
-          _channelAnalysis.name,
+          _channelAnalysis.id, _channelAnalysis.name,
           channelDescription: _channelAnalysis.description,
-          importance: Importance.defaultImportance,
-          silent: true,
+          importance: Importance.defaultImportance, silent: true,
         ),
         iOS: const DarwinNotificationDetails(presentSound: false),
       ),
@@ -115,18 +120,28 @@ class NotificationService {
   }
 
   static void _onForegroundMessage(RemoteMessage message) {
-    // Only show if notification warrants it (analysis done, significant deviation)
     final type = message.data['type'] as String?;
     if (type == 'analysis_complete' || type == 'deviation_alert') {
       _showLocalNotification(message);
     }
   }
 
-  static void _onNotificationOpenedApp(RemoteMessage message) {
-    // Navigation handled by app_router listening to notification tap
+  static void _routeFromMessage(RemoteMessage message) {
+    final measurementId = message.data['measurement_id'] as String?;
+    if (measurementId != null) {
+      onTap?.call('/measurement/$measurementId');
+    }
   }
 
   static void _onNotificationTap(NotificationResponse response) {
-    // Deep link via payload — handled by router
+    final payload = response.payload;
+    if (payload == null) return;
+    try {
+      final data = jsonDecode(payload) as Map<String, dynamic>;
+      final measurementId = data['measurement_id'] as String?;
+      if (measurementId != null) {
+        onTap?.call('/measurement/$measurementId');
+      }
+    } catch (_) {}
   }
 }

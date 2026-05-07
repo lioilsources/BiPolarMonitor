@@ -56,6 +56,14 @@ class ApiClient {
     return resp.data as Map<String, dynamic>;
   }
 
+  Future<List<int>> downloadBytes(String path) async {
+    final resp = await _dio.get<List<int>>(
+      path,
+      options: Options(responseType: ResponseType.bytes),
+    );
+    return resp.data ?? [];
+  }
+
   Future<String> uploadMeasurement({
     required String measurementId,
     required String questionsUsed,

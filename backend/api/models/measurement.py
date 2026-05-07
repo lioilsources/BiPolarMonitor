@@ -26,6 +26,8 @@ class Measurement(Base):
     analyzed: Mapped[bool] = mapped_column(Boolean, default=False)
     speaker_verified: Mapped[bool | None] = mapped_column(Boolean, nullable=True)
     speaker_similarity: Mapped[float | None] = mapped_column(Float, nullable=True)
+    face_verified: Mapped[bool | None] = mapped_column(Boolean, nullable=True)
+    face_similarity: Mapped[float | None] = mapped_column(Float, nullable=True)
 
     notes: Mapped[str | None] = mapped_column(Text, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)

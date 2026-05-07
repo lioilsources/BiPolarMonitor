@@ -48,6 +48,11 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               subtitle: user?.hasSpeakerEmbedding == true ? 'Aktivní' : 'Nenastaveno',
               onTap: () => context.push('/enrollment'),
             ),
+            _SettingsTile(
+              label: 'Rozpoznání obličeje',
+              subtitle: user?.hasFaceEmbedding == true ? 'Aktivní' : 'Nenastaveno',
+              onTap: () => context.push('/face-enrollment'),
+            ),
           ]),
 
           // Nahrávání
@@ -93,6 +98,11 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               onTap: _exportData,
             ),
             _SettingsTile(
+              label: 'PDF report',
+              subtitle: 'Přehled pro lékaře nebo terapeuta',
+              onTap: _downloadPdfReport,
+            ),
+            _SettingsTile(
               label: 'Smazat vše',
               subtitle: 'Okamžité a nevratné',
               destructive: true,
@@ -121,6 +131,19 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         ],
       ),
     );
+  }
+
+  Future<void> _downloadPdfReport() async {
+    final messenger = ScaffoldMessenger.of(context);
+    try {
+      final bytes = await ref.read(apiClientProvider).downloadBytes('/measurements/report');
+      final dir = await getTemporaryDirectory();
+      final file = File('${dir.path}/bipolar_report_${DateTime.now().millisecondsSinceEpoch}.pdf');
+      await file.writeAsBytes(bytes);
+      await Share.shareXFiles([XFile(file.path, mimeType: 'application/pdf')], subject: 'BipolarMonitor report');
+    } catch (_) {
+      messenger.showSnackBar(const SnackBar(content: Text('Stažení reportu se nezdařilo.')));
+    }
   }
 
   Future<void> _exportData() async {
