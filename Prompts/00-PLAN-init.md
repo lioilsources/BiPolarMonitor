@@ -93,30 +93,43 @@ DGX Spark — docker-compose
 
 ---
 
-### ⬜ Zbývá (Fáze 2)
+### ✅ Hotovo (Fáze 2)
 
 #### Flutter
-- [ ] `features/auth/presentation/register_screen.dart`
-- [ ] `features/onboarding/` — 3 obrazovky + disclaimer screen
-- [ ] `features/onboarding/enrollment_screen.dart` — speaker embedding (3 věty, enrollment flow)
-- [ ] `features/history/presentation/history_screen.dart` — lazy list, swipe-to-delete
-- [ ] `features/history/presentation/measurement_card.dart` — datum, composite badge, flagy jako čipy
-- [ ] `features/history/presentation/measurement_detail_screen.dart` — radar chart (5 dimenzí), přepis, poznámka
-- [ ] `features/settings/presentation/settings_screen.dart` — délka záznamu, notifikace, jazyk, export, smazat vše
-- [ ] `features/record/data/offline_queue.dart` — workmanager, exponential backoff, SQLite pending
-- [ ] `core/storage/local_database.dart` — Drift SQLite (Measurements, Scores, UserProfile)
-- [ ] Push notifikace — FCM + flutter_local_notifications (analýza hotova, daily reminder, >2.5σ alert)
-- [ ] Speaker verification — lokální cosine similarity při uploadu (warning, ne hard block)
-- [ ] Krizové tlačítko — přidat na Record screen (zatím jen Dashboard)
+- [x] `features/auth/presentation/register_screen.dart` — age gate, disclaimer checkbox
+- [x] `features/onboarding/onboarding_screen.dart` — 3 stránky (PageView + dots)
+- [x] `features/onboarding/enrollment_screen.dart` — 3 věty, PulseDot recording, embedding flow
+- [x] `features/history/presentation/history_screen.dart` — lazy load, pull-to-refresh, infinite scroll
+- [x] `features/history/presentation/measurement_card.dart` — Dismissible swipe-delete, score badge, flag chips, trend icon
+- [x] `features/history/presentation/measurement_detail_screen.dart` — RadarChart (5D), score breakdown bars, per-question dialog, flag tiles, notes
+- [x] `features/history/presentation/history_provider.dart` — paginated StateNotifier + detail FutureProvider
+- [x] `features/settings/presentation/settings_screen.dart` — profil, reminder switch+time picker, notifikace, export, smazat vše, disclaimer
+- [x] `features/record/data/offline_queue.dart` — Workmanager + exponential backoff (5/15/60/240/1440 min)
+- [x] `core/storage/local_database.dart` — Drift SQLite (LocalMeasurements, LocalScores, LocalUserProfile + settings)
+- [x] `core/notifications/notification_service.dart` — FCM + flutter_local_notifications, 2 channels, no sound
+- [x] `features/record/data/speaker_verifier.dart` — cosine similarity, soft warning (threshold 0.75)
+- [x] Router rozšířen o /register, /onboarding, /enrollment, /history, /measurement/:id, /settings
 
 #### Backend / ML
-- [ ] Alembic migrace — verzovatelné DB schéma
-- [ ] Speaker enrollment endpoint — výpočet embeddingu na ML service (nyní ukládá jen raw vektor z klienta)
-- [ ] Speaker verification v ML pipeline — porovnat s user baseline při analýze
+- [x] `alembic/` — env.py, script.mako, migration 0001 (všechny tabulky + fcm_tokens)
+- [x] `ml/pipeline/speaker.py` — Whisper encoder embedding, cosine similarity, verify_speaker
+- [x] `ml/routers/speaker_router.py` — POST /ml/speaker-enroll, /speaker-verify, /speaker-embedding
+- [x] ML pipeline — speaker verification integrována (výsledek uložen do measurements)
+- [x] `api/services/fcm_service.py` — Firebase Admin SDK, send_analysis_complete, send_deviation_alert
+- [x] `api/routers/push.py` — POST /push/register-token, /push/analysis-complete (webhook)
+- [x] `api/tasks/retention.py` — async loop, daily cleanup starých MinIO objektů
+- [x] ML main.py — FCM webhook callback po dokončení pipeline
+- [x] `cloudflared/bipolar-tunnel.yml` + `install.sh`
+
+### ⬜ Zbývá (Fáze 3 — polish)
 - [ ] OpenFace sidecar — přidat AU-based facial analysis (MediaPipe je MVP proxy)
-- [ ] Cloudflare Tunnel konfigurace (`cloudflared-bipolar.yml`)
-- [ ] FCM webhook — ML service → API → push notification po dokončení analýzy
-- [ ] Media retention cron — denní cleanup starých souborů z MinIO
+- [ ] Settings — skutečný export JSON (volání API + file save)
+- [ ] Settings — skutečné DELETE /user/data volání
+- [ ] `local_database.g.dart` — spustit `dart run build_runner build`
+- [ ] Firebase projekty — přidat `google-services.json` (Android) a `GoogleService-Info.plist` (iOS)
+- [ ] Certificate pinning (prod)
+- [ ] Accessibility — font scaling, contrast mode
+- [ ] Haptic feedback — countdown, upload done
 
 ---
 

@@ -1,0 +1,21 @@
+# Cloudflare Tunnel config for BipolarMonitor
+# Place credentials JSON at /etc/cloudflared/bipolar-creds.json
+# Run: sudo cloudflared service install --config /etc/cloudflared/bipolar-tunnel.yml
+
+tunnel: <TUNNEL_ID>
+credentials-file: /etc/cloudflared/bipolar-creds.json
+
+ingress:
+  # Main app — routes to Caddy which proxies to API
+  - hostname: bipolar.ol1n.com
+    service: http://localhost:8080
+    originRequest:
+      connectTimeout: 30s
+      noTLSVerify: false
+
+  # Catch-all
+  - service: http_status:404
+
+# Logging
+loglevel: info
+logfile: /var/log/cloudflared/bipolar.log

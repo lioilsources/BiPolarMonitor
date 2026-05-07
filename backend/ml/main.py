@@ -21,6 +21,8 @@ from pipeline.audio_analyzer import analyze_audio
 from pipeline.video_analyzer import analyze_video, facial_zscore_features
 from pipeline.cohesion import analyze_cohesion
 from pipeline.scoring import compute_scores, compute_trend, update_baseline
+from pipeline.speaker import verify_speaker
+from routers.speaker_router import router as speaker_router
 
 DATABASE_URL = os.environ["DATABASE_URL"]
 MINIO_ENDPOINT = os.environ["MINIO_ENDPOINT"]
@@ -45,6 +47,7 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(title="BipolarMonitor ML Service", lifespan=lifespan)
+app.include_router(speaker_router)
 
 
 class AnalyzeRequest(BaseModel):
@@ -67,9 +70,9 @@ async def analyze(request: AnalyzeRequest, background_tasks: BackgroundTasks):
 async def _run_pipeline(measurement_id: str, video_path: str, audio_path: str):
     async with SessionLocal() as db:
         try:
-            # Fetch measurement metadata
+            # Fetch measurement metadata + user speaker embedding
             row = await db.execute(
-                text("SELECT user_id, questions_used, question_timings, speaker_verified FROM measurements WHERE id = :id"),
+                text("SELECT user_id, questions_used, question_timings FROM measurements WHERE id = :id"),
                 {"id": measurement_id},
             )
             m = row.fetchone()
@@ -80,6 +83,14 @@ async def _run_pipeline(measurement_id: str, video_path: str, audio_path: str):
             questions_used = json.loads(m.questions_used)
             question_timings = json.loads(m.question_timings) if m.question_timings else None
 
+            # Load user speaker embedding for verification
+            speaker_row = await db.execute(
+                text("SELECT speaker_embedding FROM users WHERE id = :uid"),
+                {"uid": user_id},
+            )
+            user_row = speaker_row.fetchone()
+            stored_embedding = json.loads(user_row.speaker_embedding) if user_row and user_row.speaker_embedding else None
+
             # Download files from MinIO
             minio = _get_minio()
             with tempfile.TemporaryDirectory() as tmpdir:
@@ -87,6 +98,18 @@ async def _run_pipeline(measurement_id: str, video_path: str, audio_path: str):
                 audio_local = os.path.join(tmpdir, "audio.wav")
                 minio.fget_object(MINIO_BUCKET, video_path, video_local)
                 minio.fget_object(MINIO_BUCKET, audio_path, audio_local)
+
+                # Speaker verification
+                speaker_verified = None
+                speaker_similarity = None
+                if stored_embedding:
+                    sv = verify_speaker(audio_local, stored_embedding)
+                    speaker_verified = sv["verified"]
+                    speaker_similarity = sv["similarity"]
+                    await db.execute(
+                        text("UPDATE measurements SET speaker_verified=:v, speaker_similarity=:s WHERE id=:id"),
+                        {"v": speaker_verified, "s": speaker_similarity, "id": measurement_id},
+                    )
 
                 # Run analysis pipelines
                 audio_features = analyze_audio(audio_local, question_timings)
@@ -136,8 +159,8 @@ async def _run_pipeline(measurement_id: str, video_path: str, audio_path: str):
                 "blink_deviation": video_features.get("blink_deviation"),
             }
 
-            # Update baseline (only if speaker verified or no prior baseline)
-            if m.speaker_verified is not False:
+            # Update baseline only if speaker verified (or no enrollment yet → allow)
+            if speaker_verified is not False:
                 history_row = await db.execute(
                     text("""
                         SELECT raw_features FROM measurement_scores ms
@@ -207,6 +230,23 @@ async def _run_pipeline(measurement_id: str, video_path: str, audio_path: str):
                 {"id": measurement_id},
             )
             await db.commit()
+
+            # Notify API → FCM push notification
+            webhook_secret = os.environ.get("ML_WEBHOOK_SECRET", "")
+            try:
+                async with httpx.AsyncClient(timeout=5.0) as client:
+                    await client.post(
+                        f"{API_CALLBACK_URL}/api/v1/push/analysis-complete",
+                        json={
+                            "measurement_id": measurement_id,
+                            "user_id": user_id,
+                            "composite_zscore": scores["composite_zscore"],
+                            "flags": scores["flags"],
+                            "secret": webhook_secret,
+                        },
+                    )
+            except Exception:
+                pass  # FCM failure must never break the pipeline
 
         except Exception as e:
             await db.rollback()
