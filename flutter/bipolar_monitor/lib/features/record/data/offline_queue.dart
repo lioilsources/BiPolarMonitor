@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'dart:convert';
+import 'package:background_fetch/background_fetch.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:drift/drift.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -14,15 +15,23 @@ const _kUploadTaskName = 'bipolar_upload_pending';
 void callbackDispatcher() {
   Workmanager().executeTask((taskName, inputData) async {
     if (taskName == _kUploadTaskName) {
-      // Can't use Riverpod here — instantiate directly
       final db = LocalDatabase();
       final pending = await db.getPendingUploads();
-      // Minimal retry without full DI — just mark for retry on next app open
       await db.close();
-      return pending.isEmpty ? true : false; // reschedule if still pending
+      return pending.isEmpty ? true : false;
     }
     return true;
   });
+}
+
+// iOS background fetch headless callback — must be top-level
+@pragma('vm:entry-point')
+void backgroundFetchHeadlessTask(HeadlessTask task) async {
+  final db = LocalDatabase();
+  final pending = await db.getPendingUploads();
+  await db.close();
+  BackgroundFetch.finish(task.taskId);
+  if (pending.isEmpty) BackgroundFetch.stop(task.taskId);
 }
 
 final offlineQueueProvider = Provider<OfflineQueue>((ref) => OfflineQueue(ref));
@@ -36,6 +45,7 @@ class OfflineQueue {
   ApiClient get _api => _ref.read(apiClientProvider);
 
   Future<void> initialize() async {
+    // Android background uploads via WorkManager
     await Workmanager().initialize(callbackDispatcher, isInDebugMode: false);
     await Workmanager().registerPeriodicTask(
       _kUploadTaskName,
@@ -44,6 +54,24 @@ class OfflineQueue {
       constraints: Constraints(networkType: NetworkType.connected),
       existingWorkPolicy: ExistingWorkPolicy.keep,
     );
+
+    // iOS background fetch — triggers processQueue when app is suspended
+    if (Platform.isIOS) {
+      await BackgroundFetch.configure(
+        BackgroundFetchConfig(
+          minimumFetchInterval: 60,
+          stopOnTerminate: false,
+          enableHeadless: true,
+          requiresNetworkConnectivity: true,
+        ),
+        (taskId) async {
+          await processQueue();
+          BackgroundFetch.finish(taskId);
+        },
+        (taskId) => BackgroundFetch.finish(taskId), // timeout handler
+      );
+      BackgroundFetch.registerHeadlessTask(backgroundFetchHeadlessTask);
+    }
   }
 
   /// Called when app comes to foreground — process any pending uploads.

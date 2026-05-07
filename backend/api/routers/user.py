@@ -66,6 +66,57 @@ async def enroll_speaker(
     return {"enrolled": True}
 
 
+@router.get("/export")
+async def export_user_data(
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """GDPR export: return all user data as JSON."""
+    from sqlalchemy import select
+    from models.measurement import Measurement, MeasurementScore
+
+    measurements_result = await db.execute(
+        select(Measurement).where(Measurement.user_id == current_user.id).order_by(Measurement.recorded_at)
+    )
+    measurements = measurements_result.scalars().all()
+
+    measurements_data = []
+    for m in measurements:
+        scores_result = await db.execute(
+            select(MeasurementScore).where(MeasurementScore.measurement_id == m.id)
+        )
+        scores = scores_result.scalars().all()
+        measurements_data.append({
+            "id": m.id,
+            "recorded_at": m.recorded_at.isoformat(),
+            "duration_seconds": m.duration_seconds,
+            "questions_used": m.questions_used,
+            "question_timings": m.question_timings,
+            "speaker_verified": m.speaker_verified,
+            "notes": m.notes,
+            "scores": [
+                {
+                    "dimension": s.dimension,
+                    "raw_value": s.raw_value,
+                    "zscore": s.zscore,
+                    "flags": s.flags,
+                }
+                for s in scores
+            ],
+        })
+
+    return {
+        "exported_at": __import__("datetime").datetime.utcnow().isoformat(),
+        "user": {
+            "id": current_user.id,
+            "email": current_user.email,
+            "display_name": current_user.display_name,
+            "created_at": current_user.created_at.isoformat() if hasattr(current_user, "created_at") and current_user.created_at else None,
+        },
+        "measurements": measurements_data,
+    }
+
+
 @router.delete("/data", status_code=204)
 async def delete_all_data(
     current_user: User = Depends(get_current_user),

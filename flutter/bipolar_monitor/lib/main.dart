@@ -1,7 +1,6 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:workmanager/workmanager.dart';
 import 'app.dart';
 import 'core/notifications/notification_service.dart';
 import 'features/record/data/offline_queue.dart';
@@ -11,16 +10,17 @@ void main() async {
 
   await Firebase.initializeApp();
 
-  runApp(const ProviderScope(child: BipolarApp()));
-}
+  // Shared container for service initialization
+  final container = ProviderContainer();
 
-/// Called after ProviderScope is up — initializes services that need Riverpod.
-class AppInitializer extends ConsumerWidget {
-  final Widget child;
-  const AppInitializer({super.key, required this.child});
+  // Initialize notifications (FCM token registration)
+  await container.read(notificationServiceProvider).initialize();
 
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    return child;
-  }
+  // Initialize background upload queue (Workmanager + iOS BackgroundFetch)
+  await container.read(offlineQueueProvider).initialize();
+
+  runApp(UncontrolledProviderScope(
+    container: container,
+    child: const BipolarApp(),
+  ));
 }

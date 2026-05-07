@@ -1,12 +1,15 @@
 """
-Video facial analysis using MediaPipe Face Landmarker.
-Extracts proxies for Action Units, blink rate, and head stability.
-(Full OpenFace AU analysis is a future enhancement via sidecar container.)
+Video facial analysis.
+Tries OpenFace sidecar first (more accurate AU/pose), falls back to MediaPipe.
 """
+import httpx
 import numpy as np
 import cv2
 import mediapipe as mp
+import os
 from pathlib import Path
+
+OPENFACE_URL = os.getenv("OPENFACE_URL", "http://openface:8002")
 
 
 mp_face_mesh = mp.solutions.face_mesh
@@ -38,7 +41,52 @@ def _eye_aspect_ratio(landmarks, top_idx: int, bottom_idx: int, outer_idx: int, 
     return vertical / (horizontal + 1e-6)
 
 
+async def _try_openface(video_path: str) -> dict | None:
+    """Return OpenFace features, or None if sidecar unavailable."""
+    try:
+        async with httpx.AsyncClient(timeout=120) as client:
+            with open(video_path, "rb") as f:
+                resp = await client.post(
+                    f"{OPENFACE_URL}/analyze",
+                    files={"video": ("video.mp4", f, "video/mp4")},
+                )
+            if resp.status_code == 200:
+                return resp.json()
+    except Exception:
+        pass
+    return None
+
+
+def _openface_to_features(of: dict) -> dict:
+    """Convert OpenFace sidecar response into the same shape as MediaPipe output."""
+    au = of.get("au_means", {})
+    pose = of.get("pose", {})
+    gaze = of.get("gaze", {})
+    return {
+        "ear_mean": 1.0 - (au.get("AU45_r", 0) / 5.0),  # AU45 = blink
+        "ear_std": 0.0,
+        "blink_rate_per_min": of.get("blink_rate_per_min", 15.0),
+        "mouth_openness_mean": au.get("AU25_r", 0) / 5.0,
+        "mouth_openness_std": au.get("AU26_r", 0) / 5.0,
+        "brow_height_mean": (au.get("AU01_r", 0) + au.get("AU02_r", 0)) / 10.0,
+        "brow_height_std": au.get("AU04_r", 0) / 5.0,
+        "head_rx_std": abs(pose.get("pose_Rx", 0)),
+        "frames_analyzed": of.get("frame_count", 0),
+        "total_frames": of.get("frame_count", 0),
+        # Extra OpenFace-specific
+        "valence_proxy": of.get("valence_proxy", 0.0),
+        "au12_smile": au.get("AU12_r", 0),
+        "au15_frown": au.get("AU15_r", 0),
+        "source": "openface",
+    }
+
+
 def analyze_video(video_path: str) -> dict:
+    """Sync wrapper — OpenFace is tried async in the pipeline; this is the MediaPipe path."""
+    return _mediapipe_analyze(video_path)
+
+
+def _mediapipe_analyze(video_path: str) -> dict:
     cap = cv2.VideoCapture(video_path)
     fps = cap.get(cv2.CAP_PROP_FPS) or 30.0
     total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))

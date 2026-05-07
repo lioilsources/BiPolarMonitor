@@ -44,7 +44,10 @@ class MeasurementCard extends StatelessWidget {
           child: Row(
             children: [
               // Score badge
-              _ScoreBadge(zscore: measurement.compositeZscore),
+              Hero(
+                tag: 'score_badge_${measurement.id}',
+                child: _ScoreBadge(zscore: measurement.compositeZscore),
+              ),
               const SizedBox(width: 14),
 
               // Date + flags

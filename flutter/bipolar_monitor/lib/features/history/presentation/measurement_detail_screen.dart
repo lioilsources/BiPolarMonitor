@@ -41,7 +41,14 @@ class _MeasurementDetailScreenState extends ConsumerState<MeasurementDetailScree
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // Header
-              _SectionCard(child: Column(
+              _SectionCard(child: Row(
+                children: [
+                  Hero(
+                    tag: 'score_badge_${detail.id}',
+                    child: _ScoreBadge(zscore: detail.compositeZscore),
+                  ),
+                  const SizedBox(width: 14),
+                  Expanded(child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(DateFormat('d. MMMM yyyy, HH:mm', 'cs').format(detail.recordedAt.toLocal()), style: AppTypography.bodyPrimary.copyWith(fontWeight: FontWeight.w600)),
@@ -58,6 +65,8 @@ class _MeasurementDetailScreenState extends ConsumerState<MeasurementDetailScree
                       ),
                     ]),
                   ],
+                ],
+              )),
                 ],
               )),
               const SizedBox(height: 12),
@@ -115,6 +124,32 @@ class _MeasurementDetailScreenState extends ConsumerState<MeasurementDetailScree
               )),
             ],
           ),
+        ),
+      ),
+    );
+  }
+}
+
+class _ScoreBadge extends StatelessWidget {
+  final double? zscore;
+  const _ScoreBadge({this.zscore});
+
+  Color get _color {
+    if (zscore == null) return AppColors.surfaceAlt;
+    if (zscore! > 1.5) return AppColors.accentWarm.withOpacity(0.8);
+    if (zscore! < -1.5) return AppColors.textSecondary.withOpacity(0.5);
+    return AppColors.accent.withOpacity(0.8);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 48, height: 48,
+      decoration: BoxDecoration(color: _color.withOpacity(0.15), shape: BoxShape.circle),
+      child: Center(
+        child: Text(
+          zscore != null ? zscore!.toStringAsFixed(1) : '–',
+          style: AppTypography.mono.copyWith(color: _color, fontSize: 14),
         ),
       ),
     );

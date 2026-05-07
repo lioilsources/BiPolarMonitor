@@ -1,8 +1,13 @@
+import 'dart:convert';
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:share_plus/share_plus.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_typography.dart';
+import '../../../core/network/api_client.dart';
 import '../../../features/auth/presentation/auth_provider.dart';
 import '../../../shared/widgets/app_button.dart';
 
@@ -119,10 +124,17 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   }
 
   Future<void> _exportData() async {
-    // TODO: call GET /user/export and trigger file save
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Export bude dostupný v příští verzi.')),
-    );
+    final messenger = ScaffoldMessenger.of(context);
+    try {
+      final data = await ref.read(apiClientProvider).get('/user/export');
+      final json = const JsonEncoder.withIndent('  ').convert(data);
+      final dir = await getTemporaryDirectory();
+      final file = File('${dir.path}/bipolar_export_${DateTime.now().millisecondsSinceEpoch}.json');
+      await file.writeAsString(json);
+      await Share.shareXFiles([XFile(file.path)], subject: 'BipolarMonitor export');
+    } catch (_) {
+      messenger.showSnackBar(const SnackBar(content: Text('Export se nezdařil. Zkus to znovu.')));
+    }
   }
 
   Future<void> _confirmDeleteAll(BuildContext context) async {
@@ -142,7 +154,11 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       ),
     );
     if (confirmed == true && context.mounted) {
-      // TODO: call DELETE /user/data
+      try {
+        await ref.read(apiClientProvider).delete('/user/data');
+      } catch (_) {
+        // Proceed with local logout even if server call fails
+      }
       await ref.read(currentUserProvider.notifier).logout();
       if (context.mounted) context.go('/login');
     }

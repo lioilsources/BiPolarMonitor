@@ -37,6 +37,7 @@ services:
       - MINIO_SECRET_KEY=${MINIO_SECRET_KEY}
       - MINIO_BUCKET=${MINIO_BUCKET:-bipolar-media}
       - API_CALLBACK_URL=http://api:8000
+      - OPENFACE_URL=http://openface:8002
     volumes:
       - model_cache:/root/.cache
       - bipolar_tmp:/tmp/bipolar
@@ -57,6 +58,26 @@ services:
       timeout: 10s
       retries: 5
       start_period: 60s
+    depends_on:
+      openface:
+        condition: service_healthy
+
+  openface:
+    build: ./openface
+    container_name: bipolar_openface
+    restart: unless-stopped
+    volumes:
+      - bipolar_tmp:/tmp/bipolar
+    networks:
+      - bipolar_net
+    expose:
+      - "8002"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8002/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 120s
 
   caddy:
     image: caddy:2-alpine

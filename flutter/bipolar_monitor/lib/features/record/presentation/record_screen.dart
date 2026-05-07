@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_typography.dart';
+import '../../../core/utils/haptics.dart';
 import '../../../shared/widgets/crisis_button.dart';
 import 'dialog_widget.dart';
 import 'record_provider.dart';
@@ -49,12 +50,15 @@ class _RecordScreenState extends ConsumerState<RecordScreen> {
 
   void _startCountdown() {
     setState(() => _countdown = 3);
+    Haptics.tick();
     _countdownTimer = Timer.periodic(const Duration(seconds: 1), (t) {
       if (_countdown <= 1) {
         t.cancel();
+        Haptics.medium();
         ref.read(recordProvider.notifier).startRecording();
       } else {
         setState(() => _countdown--);
+        Haptics.tick();
       }
     });
   }
@@ -69,7 +73,11 @@ class _RecordScreenState extends ConsumerState<RecordScreen> {
         _startCountdown();
       }
       if (next.state == RecordState.done) {
+        Haptics.light();
         context.go('/dashboard', extra: next.completedMeasurementId);
+      }
+      if (next.state == RecordState.error && prev?.state != RecordState.error) {
+        Haptics.heavy();
       }
     });
 

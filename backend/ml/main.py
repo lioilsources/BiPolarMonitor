@@ -18,7 +18,7 @@ from sqlalchemy import select, text
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
 
 from pipeline.audio_analyzer import analyze_audio
-from pipeline.video_analyzer import analyze_video, facial_zscore_features
+from pipeline.video_analyzer import analyze_video, facial_zscore_features, _try_openface, _openface_to_features
 from pipeline.cohesion import analyze_cohesion
 from pipeline.scoring import compute_scores, compute_trend, update_baseline
 from pipeline.speaker import verify_speaker
@@ -113,7 +113,12 @@ async def _run_pipeline(measurement_id: str, video_path: str, audio_path: str):
 
                 # Run analysis pipelines
                 audio_features = analyze_audio(audio_local, question_timings)
-                video_raw = analyze_video(video_local)
+                # Try OpenFace sidecar first; fall back to MediaPipe
+                openface_result = await _try_openface(video_local)
+                if openface_result and "error" not in openface_result:
+                    video_raw = _openface_to_features(openface_result)
+                else:
+                    video_raw = analyze_video(video_local)
                 video_features = facial_zscore_features(video_raw)
                 cohesion_features = analyze_cohesion(
                     audio_features.get("per_question", {}),

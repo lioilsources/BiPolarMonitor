@@ -1,9 +1,11 @@
 import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:dio_smart_retry/dio_smart_retry.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../constants/api_constants.dart';
 import '../storage/secure_storage.dart';
+import 'certificate_pinning.dart';
 
 final apiClientProvider = Provider<ApiClient>((ref) => ApiClient(ref));
 
@@ -18,6 +20,11 @@ class ApiClient {
       receiveTimeout: const Duration(seconds: ApiConstants.receiveTimeoutSeconds),
       sendTimeout: Duration(minutes: ApiConstants.uploadTimeoutMinutes),
     ));
+
+    // Certificate pinning in release builds only
+    if (!kDebugMode && !kIsWeb) {
+      applyPinning(_dio);
+    }
 
     _dio.interceptors.addAll([
       _AuthInterceptor(_ref),
