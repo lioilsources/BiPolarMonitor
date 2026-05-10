@@ -96,7 +96,7 @@ services:
     container_name: bipolar_caddy
     restart: unless-stopped
     ports:
-      - "127.0.0.1:8080:8080"   # Cloudflare Tunnel míří sem
+      - "127.0.0.1:8088:8080"   # Cloudflare Tunnel míří sem
     volumes:
       - ./backend/Caddyfile:/etc/caddy/Caddyfile:ro
       - caddy_data:/data
@@ -110,7 +110,7 @@ services:
     image: cloudflare/cloudflared:latest
     container_name: bipolar_cloudflared
     restart: unless-stopped
-    command: tunnel --no-autoupdate run --token ${CLOUDFLARE_TUNNEL_TOKEN}
+    command: tunnel --no-autoupdate --url http://bipolar_caddy:8080 run --token ${CLOUDFLARE_TUNNEL_TOKEN}
     networks:
       - bipolar_net
     depends_on:
