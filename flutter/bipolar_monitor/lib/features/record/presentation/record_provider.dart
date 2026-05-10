@@ -9,6 +9,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:uuid/uuid.dart';
 import '../../../core/network/api_client.dart';
 import '../domain/measurement_model.dart';
+import '../../dashboard/presentation/dashboard_provider.dart';
 
 enum RecordState { idle, biometricCheck, loadingDialog, countdown, recording, uploading, done, error }
 
@@ -157,6 +158,8 @@ class RecordNotifier extends StateNotifier<RecordStateData> {
 
     // Cleanup temp files
     _cleanupFiles();
+
+    _ref.invalidate(dashboardProvider);
 
     state = state.copyWith(
       state: RecordState.done,
