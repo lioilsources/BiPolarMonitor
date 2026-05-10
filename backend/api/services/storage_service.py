@@ -14,6 +14,7 @@ def get_minio() -> Minio:
             access_key=settings.minio_access_key,
             secret_key=settings.minio_secret_key,
             secure=settings.minio_secure,
+            path_style=True,
         )
         if not _client.bucket_exists(settings.minio_bucket):
             _client.make_bucket(settings.minio_bucket)
