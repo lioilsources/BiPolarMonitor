@@ -280,7 +280,7 @@ async def upload_measurement(
     return {"measurement_id": measurement_id, "status": "processing"}
 
 
-@router.get("/", response_model=list[MeasurementSummary])
+@router.get("/")
 async def list_measurements(
     limit: int = 20,
     offset: int = 0,
