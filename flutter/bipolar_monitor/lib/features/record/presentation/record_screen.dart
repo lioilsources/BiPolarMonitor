@@ -7,6 +7,7 @@ import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_typography.dart';
 import '../../../core/utils/haptics.dart';
 import '../../../shared/widgets/crisis_button.dart';
+import '../domain/measurement_model.dart';
 import 'dialog_widget.dart';
 import 'record_provider.dart';
 
@@ -150,7 +151,7 @@ class _CountdownView extends StatelessWidget {
 class _RecordingView extends StatelessWidget {
   final CameraController? cameraController;
   final RecordStateData recordState;
-  final void Function(dynamic) onQuestionAdvanced;
+  final void Function(QuestionTiming) onQuestionAdvanced;
   final VoidCallback onComplete;
 
   const _RecordingView({

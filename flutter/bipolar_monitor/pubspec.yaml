@@ -30,14 +30,14 @@ dependencies:
 
   # Camera & Recording
   camera: ^0.11.0+2
-  record: ^5.1.2
+  record: ^6.0.0
   permission_handler: ^11.3.1
 
   # Auth
   local_auth: ^2.2.0
 
   # Sharing & export
-  share_plus: ^9.0.0
+  share_plus: ^12.0.2
 
   # Background (iOS offline queue)
   background_fetch: ^1.2.1

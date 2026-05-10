@@ -122,7 +122,7 @@ class LocalDatabase extends _$LocalDatabase {
       into(localScores).insertOnConflictUpdate(s);
 
   // User profile
-  Future<LocalUserProfile?> getProfile() =>
+  Future<LocalUserProfileData?> getProfile() =>
       select(localUserProfile).getSingleOrNull();
 
   Future<void> upsertProfile(LocalUserProfileCompanion p) =>

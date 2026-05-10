@@ -37,7 +37,7 @@ abstract final class AppTheme {
           trackColor: WidgetStateProperty.resolveWith((states) =>
               states.contains(WidgetState.selected) ? AppColors.elevated : AppColors.surfaceAlt),
         ),
-        dialogTheme: const DialogTheme(
+        dialogTheme: const DialogThemeData(
           backgroundColor: AppColors.surface,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.all(Radius.circular(20))),
         ),

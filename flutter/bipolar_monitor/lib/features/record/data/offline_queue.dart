@@ -1,6 +1,6 @@
 import 'dart:io';
 import 'dart:convert';
-import 'package:background_fetch/background_fetch.dart';
+import 'package:background_fetch/background_fetch.dart' as bgfetch;
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:drift/drift.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -26,12 +26,12 @@ void callbackDispatcher() {
 
 // iOS background fetch headless callback — must be top-level
 @pragma('vm:entry-point')
-void backgroundFetchHeadlessTask(HeadlessTask task) async {
+void backgroundFetchHeadlessTask(bgfetch.HeadlessTask task) async {
   final db = LocalDatabase();
   final pending = await db.getPendingUploads();
   await db.close();
-  BackgroundFetch.finish(task.taskId);
-  if (pending.isEmpty) BackgroundFetch.stop(task.taskId);
+  bgfetch.BackgroundFetch.finish(task.taskId);
+  if (pending.isEmpty) bgfetch.BackgroundFetch.stop(task.taskId);
 }
 
 final offlineQueueProvider = Provider<OfflineQueue>((ref) => OfflineQueue(ref));
@@ -57,20 +57,20 @@ class OfflineQueue {
 
     // iOS background fetch — triggers processQueue when app is suspended
     if (Platform.isIOS) {
-      await BackgroundFetch.configure(
-        BackgroundFetchConfig(
+      await bgfetch.BackgroundFetch.configure(
+        bgfetch.BackgroundFetchConfig(
           minimumFetchInterval: 60,
           stopOnTerminate: false,
           enableHeadless: true,
-          requiresNetworkConnectivity: true,
+          requiredNetworkType: bgfetch.NetworkType.ANY,
         ),
         (taskId) async {
           await processQueue();
-          BackgroundFetch.finish(taskId);
+          bgfetch.BackgroundFetch.finish(taskId);
         },
-        (taskId) => BackgroundFetch.finish(taskId), // timeout handler
+        (taskId) => bgfetch.BackgroundFetch.finish(taskId), // timeout handler
       );
-      BackgroundFetch.registerHeadlessTask(backgroundFetchHeadlessTask);
+      bgfetch.BackgroundFetch.registerHeadlessTask(backgroundFetchHeadlessTask);
     }
   }
 

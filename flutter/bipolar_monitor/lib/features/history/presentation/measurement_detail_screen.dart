@@ -311,7 +311,7 @@ class _FlagTile extends StatelessWidget {
     'minimal_responses':      ('Odpovědi byly kratší než obvykle.', Icons.compress_rounded),
     'extended_responses':     ('Hodně myšlenek najednou?', Icons.expand_rounded),
     'flight_of_ideas':        ('Hodně myšlenek najednou?', Icons.bolt_rounded),
-    'low_energy_profile':     ('Dnes to vypadá na klidnější den.', Icons.battery_low_rounded),
+    'low_energy_profile':     ('Dnes to vypadá na klidnější den.', Icons.battery_1_bar_rounded),
   };
 
   @override
