@@ -312,7 +312,7 @@ async def list_measurements(
             trend_7d=score.trend_7d if score else None,
         ))
 
-    return summaries
+    return {"items": summaries}
 
 
 @router.get("/{measurement_id}", response_model=MeasurementDetail)
