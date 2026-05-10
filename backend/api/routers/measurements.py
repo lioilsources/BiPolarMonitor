@@ -260,7 +260,7 @@ async def upload_measurement(
     m = Measurement(
         id=measurement_id,
         user_id=current_user.id,
-        recorded_at=datetime.fromisoformat(recorded_at),
+        recorded_at=datetime.fromisoformat(recorded_at).replace(tzinfo=None),
         duration_seconds=duration_seconds,
         video_path=video_key,
         audio_path=audio_key,
