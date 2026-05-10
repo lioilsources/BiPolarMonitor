@@ -1,0 +1,129 @@
+version: "3.9"
+
+# NAS deployment — vše v jednom: data + API + proxy + tunnel
+# DGX Spark (ML/GPU) zatím vynechán — měření se ukládají, analyzed=False
+
+services:
+
+  # ── Data layer ────────────────────────────────────────────────────────────
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: bipolar_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: bipolar
+      POSTGRES_USER: bipolar
+      POSTGRES_PASSWORD: ${PG_PASSWORD}
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+      - ./nas/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    networks:
+      - bipolar_net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U bipolar -d bipolar"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  minio:
+    image: minio/minio:latest
+    container_name: bipolar_minio
+    restart: unless-stopped
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_PASS}
+    volumes:
+      - minio_data:/data
+    ports:
+      - "127.0.0.1:9001:9001"   # MinIO konzole — přístup přes SSH tunnel
+    networks:
+      - bipolar_net
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  backup:
+    image: prodrigestivill/postgres-backup-local
+    container_name: bipolar_backup
+    restart: unless-stopped
+    environment:
+      POSTGRES_HOST: postgres
+      POSTGRES_DB: bipolar
+      POSTGRES_USER: bipolar
+      POSTGRES_PASSWORD: ${PG_PASSWORD}
+      SCHEDULE: "0 3 * * *"
+      BACKUP_KEEP_DAYS: 30
+      BACKUP_KEEP_WEEKS: 8
+      BACKUP_KEEP_MONTHS: 6
+    volumes:
+      - pg_backups:/backups
+    networks:
+      - bipolar_net
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  # ── API layer ─────────────────────────────────────────────────────────────
+
+  api:
+    build: ./backend/api
+    container_name: bipolar_api
+    restart: unless-stopped
+    env_file: .env.nas
+    volumes:
+      - bipolar_tmp:/tmp/bipolar
+    networks:
+      - bipolar_net
+    expose:
+      - "8000"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    depends_on:
+      postgres:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+
+  caddy:
+    image: caddy:2-alpine
+    container_name: bipolar_caddy
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:8080:8080"   # Cloudflare Tunnel míří sem
+    volumes:
+      - ./backend/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    networks:
+      - bipolar_net
+    depends_on:
+      - api
+
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    container_name: bipolar_cloudflared
+    restart: unless-stopped
+    command: tunnel --no-autoupdate run --token ${CLOUDFLARE_TUNNEL_TOKEN}
+    networks:
+      - bipolar_net
+    depends_on:
+      - caddy
+
+volumes:
+  pg_data:
+  minio_data:
+  pg_backups:
+  bipolar_tmp:
+  caddy_data:
+  caddy_config:
+
+networks:
+  bipolar_net:
+    driver: bridge

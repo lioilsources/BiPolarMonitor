@@ -30,13 +30,17 @@ class DashboardScreen extends ConsumerWidget {
                   expandedHeight: 100,
                   flexibleSpace: FlexibleSpaceBar(
                     titlePadding: const EdgeInsets.fromLTRB(20, 0, 20, 16),
-                    title: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(_greeting(), style: AppTypography.bodySm),
-                        Text(user?.displayName ?? '', style: AppTypography.headingMd),
-                      ],
+                    title: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      alignment: Alignment.centerLeft,
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(_greeting(), style: AppTypography.bodySm),
+                          Text(user?.displayName ?? '', style: AppTypography.headingMd),
+                        ],
+                      ),
                     ),
                   ),
                   actions: [
