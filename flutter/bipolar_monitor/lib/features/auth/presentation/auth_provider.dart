@@ -3,14 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../data/auth_repository.dart';
 import '../domain/user_model.dart';
 
-const _kDebugUser = UserModel(
-  id: 'debug-user',
-  email: 'debug@local',
-  displayName: 'Debug User',
-  totalMeasurements: 3,
-  hasSpeakerEmbedding: true,
-  hasFaceEmbedding: false,
-);
+// Debug credentials — used only in kDebugMode, never compiled into release
+const _kDebugEmail = 'debug@bipolar.dev';
+const _kDebugPassword = 'debug-password-change-me';
 
 // Current user (null = not logged in)
 final currentUserProvider = StateNotifierProvider<CurrentUserNotifier, AsyncValue<UserModel?>>(
@@ -25,11 +20,18 @@ class CurrentUserNotifier extends StateNotifier<AsyncValue<UserModel?>> {
   }
 
   Future<void> _init() async {
+    final repo = _ref.read(authRepositoryProvider);
+
     if (kDebugMode) {
-      state = const AsyncValue.data(_kDebugUser);
+      try {
+        await repo.login(email: _kDebugEmail, password: _kDebugPassword);
+        final user = await repo.getProfile();
+        state = AsyncValue.data(user);
+      } catch (e, st) {
+        state = AsyncValue.error(e, st);
+      }
       return;
     }
-    final repo = _ref.read(authRepositoryProvider);
     final loggedIn = await repo.isLoggedIn();
     if (!loggedIn) {
       state = const AsyncValue.data(null);
