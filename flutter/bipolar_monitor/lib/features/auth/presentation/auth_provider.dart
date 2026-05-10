@@ -1,6 +1,16 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../data/auth_repository.dart';
 import '../domain/user_model.dart';
+
+const _kDebugUser = UserModel(
+  id: 'debug-user',
+  email: 'debug@local',
+  displayName: 'Debug User',
+  totalMeasurements: 3,
+  hasSpeakerEmbedding: true,
+  hasFaceEmbedding: false,
+);
 
 // Current user (null = not logged in)
 final currentUserProvider = StateNotifierProvider<CurrentUserNotifier, AsyncValue<UserModel?>>(
@@ -15,6 +25,10 @@ class CurrentUserNotifier extends StateNotifier<AsyncValue<UserModel?>> {
   }
 
   Future<void> _init() async {
+    if (kDebugMode) {
+      state = const AsyncValue.data(_kDebugUser);
+      return;
+    }
     final repo = _ref.read(authRepositoryProvider);
     final loggedIn = await repo.isLoggedIn();
     if (!loggedIn) {
