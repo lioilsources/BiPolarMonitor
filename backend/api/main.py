@@ -14,10 +14,7 @@ from tasks.retention import run_retention_loop
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
-
-    # Start background media retention cleanup (runs daily)
+    # Schema is managed by Alembic (runs before uvicorn in Dockerfile CMD)
     retention_task = asyncio.create_task(run_retention_loop(AsyncSessionLocal))
 
     yield
