@@ -18,6 +18,8 @@ services:
     volumes:
       - pg_data:/var/lib/postgresql/data
       - ./init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    ports:
+      - "5432:5432"   # SPARK ML přistupuje přímo přes LAN — firewall na NASu omez na SPARK IP
     networks:
       - bipolar_net
     healthcheck:
@@ -37,6 +39,7 @@ services:
     volumes:
       - minio_data:/data
     ports:
+      - "9000:9000"             # S3 API — SPARK ML přistupuje přes LAN
       - "127.0.0.1:9001:9001"   # MinIO konzole — přístup přes SSH tunnel
     hostname: bipolar-minio
     networks:
@@ -99,7 +102,7 @@ services:
     ports:
       - "8088:8080"   # Cloudflare Tunnel + LAN callback ze SPARKu (ML→API)
     volumes:
-      - ../backend/Caddyfile:/etc/caddy/Caddyfile:ro
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
       - caddy_data:/data
       - caddy_config:/config
     networks:
