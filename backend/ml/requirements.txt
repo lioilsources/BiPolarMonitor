@@ -7,9 +7,8 @@ httpx==0.27.0
 
 # Audio analysis
 opensmile==2.5.0
-openai-whisper==20231117
-torch==2.3.0
-torchaudio==2.3.0
+openai-whisper==20240930
+# torch is provided by the NGC base image (PyTorch 2.8 + CUDA 13, built for Grace Blackwell)
 
 # Embeddings (cohesion scoring)
 sentence-transformers==3.0.1

@@ -1,29 +1,10 @@
 version: "3.9"
 
-# DGX Spark deployment — API + ML inference
-# NAS services (PostgreSQL + MinIO) run separately on NAS host
+# DGX Spark deployment — ML + OpenFace inference (GPU services)
+# API, Postgres, MinIO and Cloudflare Tunnel run on the NAS host
+# NAS reaches this host over the LAN via Caddy on port 8090
 
 services:
-  api:
-    build: ./api
-    container_name: bipolar_api
-    restart: unless-stopped
-    env_file: .env
-    volumes:
-      - bipolar_tmp:/tmp/bipolar
-    networks:
-      - bipolar_net
-    expose:
-      - "8000"
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-    depends_on:
-      ml:
-        condition: service_healthy
-
   ml:
     build: ./ml
     container_name: bipolar_ml
@@ -36,7 +17,7 @@ services:
       - MINIO_ACCESS_KEY=${MINIO_ACCESS_KEY}
       - MINIO_SECRET_KEY=${MINIO_SECRET_KEY}
       - MINIO_BUCKET=${MINIO_BUCKET:-bipolar-media}
-      - API_CALLBACK_URL=http://api:8000
+      - API_CALLBACK_URL=${API_CALLBACK_URL}
       - OPENFACE_URL=http://openface:8002
     volumes:
       - model_cache:/root/.cache
@@ -84,13 +65,16 @@ services:
     container_name: bipolar_caddy
     restart: unless-stopped
     ports:
-      - "8080:8080"   # Cloudflare Tunnel points here
+      - "8090:8090"   # NAS reaches ML/OpenFace via this LAN port
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
       - caddy_data:/data
       - caddy_config:/config
     networks:
       - bipolar_net
+    depends_on:
+      ml:
+        condition: service_healthy
 
 volumes:
   bipolar_tmp:

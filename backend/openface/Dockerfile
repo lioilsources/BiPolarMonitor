@@ -10,12 +10,26 @@ RUN apt-get update && apt-get install -y \
     python3-pip \
     && rm -rf /var/lib/apt/lists/*
 
+# Build dlib from source (apt has 19.10, OpenFace requires 19.13+)
+RUN git clone --depth 1 --branch v19.24 https://github.com/davisking/dlib.git /opt/dlib && \
+    mkdir /opt/dlib/build && cd /opt/dlib/build && \
+    cmake .. -DDLIB_NO_GUI_SUPPORT=ON -DCMAKE_BUILD_TYPE=RELEASE && \
+    cmake --build . --config Release -- -j$(nproc) && \
+    make install && \
+    ldconfig
+
 # Build OpenFace from source
 WORKDIR /opt
 RUN git clone --depth 1 https://github.com/TadasBaltrusaitis/OpenFace.git
 WORKDIR /opt/OpenFace
-RUN mkdir build && cd build && \
-    cmake -D CMAKE_BUILD_TYPE=RELEASE .. && \
+# Strip x86-only SSE flags — this image may run on ARM (aarch64)
+RUN sed -i 's/-msse[^ "]*//g' CMakeLists.txt
+RUN MULTIARCH=$(gcc -print-multiarch) && \
+    mkdir build && cd build && \
+    cmake -D CMAKE_BUILD_TYPE=RELEASE \
+          -D OpenBLAS_INCLUDE_DIR=/usr/include \
+          -D OpenBLAS_LIB=/usr/lib/${MULTIARCH}/libopenblas.so \
+          .. && \
     make -j$(nproc) FeatureExtraction
 
 # Download models

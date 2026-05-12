@@ -1,24 +1,21 @@
-# Listens on port 8080 — Cloudflare Tunnel sends HTTPS traffic here
-:8080 {
+# Listens on port 8090 — NAS calls SPARK ML/OpenFace over LAN
+:8090 {
     # Max upload size for video files
     request_body {
         max_size 200MB
     }
 
-    reverse_proxy /api/* bipolar_api:8000 {
+    reverse_proxy bipolar_ml:8001 {
         header_up X-Real-IP {remote_host}
-        header_up X-Forwarded-Proto https
-        # Generous timeout for multipart video upload
+        # Generous timeout for ML inference + multipart video upload
         transport http {
             dial_timeout 10s
-            response_header_timeout 300s
+            response_header_timeout 600s
         }
     }
 
     header {
-        Strict-Transport-Security "max-age=31536000; includeSubDomains"
         X-Content-Type-Options "nosniff"
-        X-Frame-Options "DENY"
         -Server
     }
 
