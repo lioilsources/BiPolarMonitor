@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zijemjenjednou.cz | P biPo Heal Demo</title>
+    <style>
+        :root {
+            --primary: #4fc3f7; --secondary: #81c784; --dark: #2c3e50; 
+            --accent: #ffb74d; --ghost: #e74c3c; --nav-bg: #ffffff;
+        }
+        
+        /* Pozadí - Příroda, pejsci, kočičky (volně dostupný ilustrační obrázek) */
+        body { 
+            font-family: 'Segoe UI', sans-serif; 
+            margin: 0; 
+            color: var(--dark); 
+            line-height: 1.6; 
+            padding-bottom: 70px; 
+            background: url('https://images.unsplash.com/photo-1541364983171-a8ba01e95cfc?auto=format&fit=crop&w=1920&q=80') no-repeat center center fixed; 
+            background-size: cover;
+        }
+        
+        /* Překryvná vrstva, aby bylo pozadí jemnější */
+        .overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(240, 248, 245, 0.4); z-index: -1;
+        }
+
+        header { background: rgba(255, 255, 255, 0.95); padding: 15px; text-align: center; border-bottom: 4px solid var(--primary); box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .container { max-width: 500px; margin: auto; padding: 15px; position: relative; z-index: 1; } 
+        
+        /* Karty mají lehkou průhlednost, aby pozadí prosvítalo */
+        .card { background: rgba(255, 255, 255, 0.92); border-radius: 15px; padding: 20px; margin-bottom: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.15); backdrop-filter: blur(5px); }
+        
+        .app-screen { display: none; } 
+        .active { display: block; animation: fadeIn 0.4s; } 
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+
+        button { background: var(--primary); color: white; border: none; padding: 15px; border-radius: 10px; cursor: pointer; width: 100%; font-weight: bold; font-size: 1em; margin-top: 10px; }
+        button:hover { filter: brightness(1.1); }
+        
+        input[type="range"], input[type="password"], input[type="file"], input[type="text"] { width: 100%; margin: 10px 0; padding: 10px; box-sizing: border-box; border-radius: 8px; border: 1px solid #ccc; background: rgba(255,255,255,0.8); }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 15px 0; }
+        label { display: block; font-weight: bold; margin-bottom: 5px; }
+
+        .timer-box { background: rgba(255, 243, 243, 0.9); color: var(--ghost); text-align: center; padding: 10px; border-radius: 8px; font-weight: bold; margin-bottom: 15px; border: 1px solid #ffcdd2; backdrop-filter: blur(5px); }
+
+        /* Spodní mobilní navigace (nyní vždy viditelná) */
+        .bottom-nav { position: fixed; bottom: 0; left: 0; width: 100%; background: var(--nav-bg); border-top: 1px solid #ddd; display: flex; justify-content: space-around; padding: 10px 0; box-shadow: 0 -2px 10px rgba(0,0,0,0.05); z-index: 1000; }
+        .nav-item { text-align: center; font-size: 0.8em; color: var(--dark); cursor: pointer; flex: 1; }
+        .nav-item span { display: block; font-size: 1.5em; margin-bottom: 2px; }
+
+        .chart-container { display: flex; align-items: flex-end; justify-content: space-between; height: 150px; margin-top: 20px; padding-bottom: 10px; border-bottom: 2px solid #ddd; }
+        .bar { width: 12%; background: var(--primary); border-radius: 4px 4px 0 0; text-align: center; color: white; font-size: 0.7em; display: flex; flex-direction: column; justify-content: flex-end; }
+        
+        .forum-post { background: rgba(240, 244, 248, 0.8); padding: 10px; border-radius: 8px; margin-bottom: 10px; border-left: 4px solid var(--secondary); }
+        .forum-post small { color: #666; }
+    </style>
+</head>
+<body>
+
+<div class="overlay"></div>
+
+<header>
+    <h2 style="margin:0;">Žijem jen jednou</h2>
+    <small>P biPo Heal v4.4 - Demo</small>
+</header>
+
+<div class="container">
+    <div id="timer" class="timer-box">Zbývá vám: 14 dní</div>
+
+    <!-- OBRAZOVKA 1: HLAVNÍ DASHBOARD (Rovnou přístupný) -->
+    <div id="screen-dashboard" class="app-screen active">
+        <div class="card">
+            <h3>📊 Dnešní monitoring</h3>
+            <label>Aktuální nálada (1-10): <span id="mood-display">5</span></label>
+            <input type="range" min="1" max="10" value="5" oninput="document.getElementById('mood-display').innerText = this.value">
+
+            <label>Užité látky a léky:</label>
+            <div class="grid" style="font-size: 0.9em;">
+                <label><input type="checkbox"> Předepsané</label>
+                <label><input type="checkbox"> Magnézium</label>
+                <label><input type="checkbox"> Vitamíny</label>
+                <label><input type="checkbox"> Protein</label>
+            </div>
+            <button onclick="alert('Záznam uložen do paměti.')">ULOŽIT DO DATABÁZE</button>
+        </div>
+        <div class="card" style="background: rgba(44, 62, 80, 0.9); color: white;">
+            <h4>ℹ️ Náš výzkum</h4>
+            <p style="font-size: 0.85em;">Testováno 14 let v reálném prostředí. Osloveno přes 200 lidí. Cílem je poskytnout nástroj, který pomáhá tam, kde končí návštěva ordinace.</p>
+        </div>
+    </div>
+
+    <!-- OBRAZOVKA 2: GRAFY -->
+    <div id="screen-graphs" class="app-screen">
+        <div class="card">
+            <h3>📈 Historie nálad (7 dní)</h3>
+            <p style="font-size: 0.85em; color: #666;">Vaše křivka stability za poslední týden.</p>
+            <div class="chart-container">
+                <div class="bar" style="height: 50%;">5</div>
+                <div class="bar" style="height: 70%;">7</div>
+                <div class="bar" style="height: 80%; background: var(--ghost);">8</div>
+                <div class="bar" style="height: 40%;">4</div>
+                <div class="bar" style="height: 60%;">6</div>
+                <div class="bar" style="height: 50%;">5</div>
+                <div class="bar" style="height: 60%; background: var(--secondary);">6</div>
+            </div>
+            <div style="display: flex; justify-content: space-between; font-size: 0.7em; color: #888; margin-top: 5px;">
+                <span>Po</span><span>Út</span><span>St</span><span>Čt</span><span>Pá</span><span>So</span><span>Ne</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- OBRAZOVKA 3: FÓRUM -->
+    <div id="screen-forum" class="app-screen">
+        <div class="card">
+            <h3>💬 Komunita P biPo Heal</h3>
+            <div class="forum-post">
+                <strong>Anonym (Peer konzultant)</strong><br>
+                <small>Dnes, 10:15</small>
+                <p style="margin: 5px 0;">Dnes jsem vyzkoušel Ghost protokol při náznaku mánie. Pomohlo to odstřihnout podněty. Jak to funguje vám?</p>
+            </div>
+            <div class="forum-post">
+                <strong>Jana S.</strong><br>
+                <small>Včera, 18:30</small>
+                <p style="margin: 5px 0;">Nezapomínejte na hořčík. Jakmile ho vynechám, spánek jde hned dolů.</p>
+            </div>
+            <hr style="border: 0; border-top: 1px solid #eee; margin: 15px 0;">
+            <input type="text" placeholder="Napište svůj postřeh...">
+            <button style="background: var(--secondary); padding: 10px;">Odeslat příspěvek</button>
+        </div>
+    </div>
+
+    <!-- OBRAZOVKA 4: VSTUP PRO VÝVOJÁŘE -->
+    <div id="screen-dev-login" class="app-screen">
+        <div class="card" style="border-left: 5px solid var(--dark);">
+            <h3>⚙️ Přístup pro vývojáře</h3>
+            <p>Tato sekce je vyhrazena pouze pro správce aplikace.</p>
+            <input type="password" id="dev-pass" placeholder="Zadejte heslo (panP2026)">
+            <button onclick="checkDevPass()" style="background: var(--dark);">Ověřit identitu</button>
+        </div>
+    </div>
+
+    <!-- OBRAZOVKA 5: VÝVOJÁŘSKÝ PORTÁL -->
+    <div id="screen-dev-portal" class="app-screen">
+        <div class="card" style="border-left: 5px solid var(--secondary);">
+            <h3>🚀 Správa verzí (Admin Panel)</h3>
+            <p>Vítejte, pane P. Zde můžete distribuovat nové sestavení aplikace uživatelům.</p>
+            
+            <div style="background: rgba(244, 244, 244, 0.8); padding: 15px; border-radius: 8px; margin-bottom: 15px;">
+                <strong>Aktuální nasazená verze:</strong> v10.3 (Stabilní)<br>
+                <strong>Aktivní uživatelé v demo:</strong> 204
+            </div>
+
+            <label>Nahrát nový kód aplikace (HTML/JS balíček):</label>
+            <input type="file" id="app-upload" accept=".zip,.html,.js">
+            <input type="text" placeholder="Poznámka k verzi (např. v10.4 - oprava grafů)">
+            <button onclick="uploadApp()" style="background: #27ae60;">Nahrát a publikovat novou verzi</button>
+            <button onclick="switchScreen('screen-dashboard')" style="background: #7f8c8d;">Zpět do aplikace</button>
+        </div>
+    </div>
+
+</div>
+
+<!-- SPODNÍ NAVIGACE -->
+<div class="bottom-nav" id="main-nav">
+    <div class="nav-item" onclick="switchScreen('screen-dashboard')"><span>🏠</span>Domů</div>
+    <div class="nav-item" onclick="switchScreen('screen-graphs')"><span>📈</span>Grafy</div>
+    <div class="nav-item" onclick="switchScreen('screen-forum')"><span>💬</span>Fórum</div>
+    <div class="nav-item" onclick="switchScreen('screen-dev-login')"><span>⚙️</span>Vývojář</div>
+</div>
+
+<script>
+    // Správa času demoverze
+    const startTime = localStorage.getItem('demo_start') || Date.now();
+    localStorage.setItem('demo_start', startTime);
+    function updateTimer() {
+        const diff = (14 * 24 * 60 * 60 * 1000) - (Date.now() - startTime);
+        if (diff <= 0) { document.getElementById('timer').innerText = "Demo verze vypršela"; return; }
+        const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+        const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+        document.getElementById('timer').innerText = `Zkušební doba: ${days}d ${hours}h ${mins}m`;
+    }
+    setInterval(updateTimer, 60000); updateTimer();
+
+    // Přepínání obrazovek (SPA logika)
+    function switchScreen(screenId) {
+        document.querySelectorAll('.app-screen').forEach(el => el.classList.remove('active'));
+        document.getElementById(screenId).classList.add('active');
+    }
+
+    // Logika pro vývojářské heslo
+    function checkDevPass() {
+        const pass = document.getElementById('dev-pass').value;
+        if (pass === "panP2026") {
+            switchScreen('screen-dev-portal');
+            document.getElementById('dev-pass').value = ''; 
+        } else {
+            alert("Nesprávné heslo pro přístup vývojáře.");
+        }
+    }
+
+    // Simulace nahrání nové aplikace
+    function uploadApp() {
+        const fileInput = document.getElementById('app-upload');
+        if (fileInput.files.length === 0) {
+            alert("Vyberte prosím soubor s novou verzí aplikace.");
+            return;
+        }
+        alert("Příprava k odeslání...\nNová verze se nahrává. Po dokončení budou uživatelé vyzváni k aktualizaci.");
+    }
+</script>
+
+</body>
+</html>

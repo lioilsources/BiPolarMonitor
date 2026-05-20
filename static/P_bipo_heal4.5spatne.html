@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>P biPo Heal v4.5</title>
+    <style>
+        :root {
+            --primary-color: #4A90E2;
+            --bg-color: #f4f4f9;
+            --text-color: #333;
+            --card-bg: #ffffff;
+            --danger-color: #d9534f;
+        }
+
+        body.dark-mode {
+            --bg-color: #1a1a1a;
+            --text-color: #f4f4f9;
+            --card-bg: #2d2d2d;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            transition: all 0.3s ease;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .container {
+            max-width: 600px;
+            width: 100%;
+            background: var(--card-bg);
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+
+        .visual-section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        #display-image {
+            max-width: 100%;
+            height: auto;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: transform 0.1s;
+        }
+
+        .btn:active { transform: scale(0.98); }
+
+        .btn-primary { background-color: var(--primary-color); color: white; }
+        
+        .btn-danger { 
+            background-color: var(--danger-color); 
+            color: white; 
+            width: 100%;
+            margin-top: 10px;
+        }
+
+        .input-group {
+            margin-bottom: 15px;
+        }
+
+        label { display: block; margin-bottom: 5px; font-weight: 500; }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-sizing: border-box;
+        }
+
+        #allergy-details {
+            margin-top: 15px;
+            padding: 15px;
+            background: rgba(217, 83, 79, 0.1);
+            border-left: 4px solid var(--danger-color);
+            display: none;
+        }
+
+        .header { text-align: center; margin-bottom: 20px; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <h1>P biPo Heal <small>v4.5</small></h1>
+        <button onclick="toggleDarkMode()" class="btn">🌙 Přepnout režim</button>
+    </div>
+
+    <div class="visual-section">
+        <div id="image-container">
+            <img id="display-image" src="https://images.unsplash.com/photo-1501854140801-50d01698950b?auto=format&fit=crop&w=600&q=80" alt="Relaxační scéna">
+        </div>
+        <button id="change-image-btn" class="btn btn-primary" onclick="nextImage()">
+            🔄 Změnit atmosféru
+        </button>
+    </div>
+
+    <hr>
+
+    <div class="form-section">
+        <h3>Denní záznam</h3>
+        
+        <div class="input-group">
+            <label>Aktuální léky:</label>
+            <input type="text" placeholder="Např. Lithium, Lamotrigin...">
+        </div>
+
+        <div class="input-group">
+            <label>Poznámky k náladě:</label>
+            <textarea placeholder="Jak se dnes cítíte?"></textarea>
+        </div>
+
+        <div class="allergy-container">
+            <button type="button" class="btn btn-danger" onclick="toggleAllergyInput()">
+                ⚠️ HLÁSIT ALERGICKOU REAKCI
+            </button>
+
+            <div id="allergy-details">
+                <label for="allergy-type">Typ alergie:</label>
+                <select id="allergy-type">
+                    <option value="">-- Vyberte --</option>
+                    <option value="leky">Léková reakce</option>
+                    <option value="potraviny">Potravinová alergie</option>
+                    <option value="hmyz">Bodnutí hmyzem</option>
+                    <option value="jine">Jiná</option>
+                </select>
+                <textarea id="allergy-note" style="margin-top:10px;" placeholder="Specifikujte příznaky..."></textarea>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Seznam obrázků (ukázka)
+    const images = [
+        "https://images.unsplash.com/photo-1501854140801-50d01698950b?auto=format&fit=crop&w=600&q=80",
+        "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?auto=format&fit=crop&w=600&q=80",
+        "https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?auto=format&fit=crop&w=600&q=80"
+    ];
+    let currentImgIndex = 0;
+
+    function nextImage() {
+        currentImgIndex = (currentImgIndex + 1) % images.length;
+        document.getElementById('display-image').src = images[currentImgIndex];
+    }
+
+    function toggleDarkMode() {
+        document.body.classList.toggle('dark-mode');
+    }
+
+    function toggleAllergyInput() {
+        const details = document.getElementById("allergy-details");
+        details.style.display = (details.style.display === "block") ? "none" : "block";
+    }
+</script>
+
+</body>
+</html>

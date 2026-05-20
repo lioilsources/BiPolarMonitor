@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="theme-color" content="#0f172a">
+    <title>P biPo Heal v11.0</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/lucide/0.263.1/lucide.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;900&display=swap');
+        body { font-family: 'Inter', sans-serif; transition: background-color 0.3s; -webkit-tap-highlight-color: transparent; }
+        .glass { background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.4); }
+        .dark .glass { background: rgba(15, 23, 42, 0.7); border: 1px solid rgba(255, 255, 255, 0.05); }
+        
+        .fade-in { animation: fadeIn 0.4s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Animace pro dýchání */
+        .breathe-circle {
+            animation: breathe 16s ease-in-out infinite;
+        }
+        @keyframes breathe {
+            0% { transform: scale(1); opacity: 0.5; }
+            25% { transform: scale(1.5); opacity: 1; } /* Nádech 4s */
+            50% { transform: scale(1.5); opacity: 1; } /* Zadržet 4s */
+            75% { transform: scale(1); opacity: 0.5; } /* Výdech 4s */
+            100% { transform: scale(1); opacity: 0.5; } /* Zadržet 4s */
+        }
+        
+        /* Custom Checkbox/Radio */
+        .custom-check:checked + div { border-color: #3b82f6; background-color: rgba(59, 130, 246, 0.1); }
+        .dark .custom-check:checked + div { background-color: rgba(59, 130, 246, 0.2); }
+        
+        /* Pexeso 3D efekt (zjednodušený) */
+        .pexeso-card { transition: transform 0.3s, background-color 0.3s; }
+        .pexeso-matched { transform: scale(0.95); opacity: 0.8; pointer-events: none; }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100 min-h-screen pb-24 transition-colors duration-300">
+
+    <header class="px-6 py-4 flex justify-between items-center sticky top-0 z-40 glass shadow-sm">
+        <div>
+            <h1 class="text-xl font-black tracking-tighter bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-purple-600">biPo Heal</h1>
+            <p class="text-[10px] font-bold uppercase tracking-widest opacity-60">v11.0 Holistic Care</p>
+        </div>
+        <button onclick="toggleDarkMode()" class="p-2 rounded-full bg-slate-200 dark:bg-slate-800 transition">
+            <i data-lucide="moon" id="theme-icon"></i>
+        </button>
+    </header>
+
+    <main id="app-content" class="max-w-md mx-auto p-4 space-y-6">
+        <!-- Vykreslováno JS -->
+    </main>
+
+    <!-- Navigace -->
+    <nav id="main-nav" class="fixed bottom-0 left-0 right-0 glass border-t border-slate-200 dark:border-slate-800 flex justify-around p-3 pb-[env(safe-area-inset-bottom)] z-50">
+        <button onclick="openTab('dashboard')" class="nav-btn flex flex-col items-center gap-1 opacity-60"><i data-lucide="home" class="w-5 h-5"></i><span class="text-[10px] font-bold">Domů</span></button>
+        <button onclick="openTab('nutrition')" class="nav-btn flex flex-col items-center gap-1 opacity-60"><i data-lucide="shield-alert" class="w-5 h-5"></i><span class="text-[10px] font-bold">Lékárník</span></button>
+        <button onclick="openTab('weekly')" class="nav-btn flex flex-col items-center gap-1 opacity-60"><i data-lucide="calendar-check" class="w-5 h-5"></i><span class="text-[10px] font-bold">Týden</span></button>
+        <button onclick="openTab('settings')" class="nav-btn flex flex-col items-center gap-1 opacity-60"><i data-lucide="user" class="w-5 h-5"></i><span class="text-[10px] font-bold">Profil</span></button>
+    </nav>
+
+    <!-- Dýchací cvičení Overlay -->
+    <div id="breathe-overlay" class="fixed inset-0 bg-slate-900/95 z-[100] hidden flex-col items-center justify-center text-white fade-in">
+        <button onclick="toggleBreathing()" class="absolute top-6 right-6 p-2 bg-white/10 rounded-full"><i data-lucide="x"></i></button>
+        <h2 class="text-2xl font-bold mb-2">Dýchání 4-4-4-4</h2>
+        <p class="text-xs opacity-60 mb-12">Nádech (4s) - Zadržet (4s) - Výdech (4s) - Zadržet (4s)</p>
+        <div class="relative w-48 h-48 flex items-center justify-center">
+            <div class="absolute inset-0 bg-blue-500 rounded-full breathe-circle"></div>
+            <div class="absolute inset-4 bg-slate-900 rounded-full flex items-center justify-center z-10">
+                <i data-lucide="wind" class="w-12 h-12 text-blue-400"></i>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pexeso Overlay -->
+    <div id="pexeso-overlay" class="fixed inset-0 bg-slate-900/95 z-[100] hidden flex-col items-center justify-center text-white fade-in">
+        <button onclick="closePexeso()" class="absolute top-6 right-6 p-2 bg-white/10 rounded-full"><i data-lucide="x"></i></button>
+        <h2 class="text-2xl font-bold mb-1">Ranní Probuzení</h2>
+        <p class="text-xs opacity-60 mb-8">Najděte všechny páry. Soustřeďte svou mysl.</p>
+        
+        <div id="pexeso-grid" class="grid grid-cols-4 gap-3">
+            <!-- Karty se vygenerují přes JS -->
+        </div>
+
+        <div id="pexeso-win" class="hidden flex-col items-center mt-8 fade-in">
+            <i data-lucide="check-circle-2" class="w-12 h-12 text-emerald-400 mb-2"></i>
+            <p class="font-bold text-lg text-emerald-400">Výborně, pane P.!</p>
+            <p class="text-xs opacity-60 mt-1">Vaše mysl je plně nastartovaná.</p>
+            <button onclick="startPexeso()" class="mt-4 px-6 py-2 bg-white/20 rounded-xl font-bold text-sm hover:bg-white/30">Hrát znovu</button>
+        </div>
+    </div>
+
+    <!-- Uzemnění (Hledač) Overlay -->
+    <div id="grounding-overlay" class="fixed inset-0 bg-slate-900/95 z-[100] hidden flex-col items-center justify-center text-white fade-in">
+        <button onclick="closeGrounding()" class="absolute top-6 right-6 p-2 bg-white/10 rounded-full"><i data-lucide="x"></i></button>
+        <h2 class="text-xl font-bold mb-2 opacity-80 uppercase tracking-widest"><i data-lucide="compass" class="inline w-5 h-5 mr-1"></i> Uzemnění</h2>
+        
+        <div id="grounding-content" class="flex flex-col items-center max-w-sm w-full px-6">
+            <p class="text-sm opacity-60 text-center mb-8">Tato technika pomáhá zastavit tok negativních nebo závodících myšlenek tím, že mozek zaměří na fyzickou realitu kolem vás.</p>
+            
+            <div class="w-full bg-white/10 rounded-3xl p-8 flex flex-col items-center border border-white/20 shadow-2xl">
+                <p id="grounding-text" class="text-2xl font-black text-center mb-6 leading-tight"></p>
+                <div class="text-xs font-bold bg-white/20 px-3 py-1 rounded-full mb-6" id="grounding-progress">0/3</div>
+                
+                <button onclick="foundGroundingItem()" class="w-full py-4 bg-teal-500 hover:bg-teal-600 text-white rounded-2xl font-black shadow-lg active:scale-95 transition">
+                    Našel jsem to!
+                </button>
+            </div>
+        </div>
+
+        <div id="grounding-win" class="hidden flex-col items-center px-6 text-center fade-in">
+            <div class="w-20 h-20 bg-teal-500/20 rounded-full flex items-center justify-center mb-4">
+                <i data-lucide="leaf" class="w-10 h-10 text-teal-400"></i>
+            </div>
+            <p class="font-bold text-xl text-teal-400">Jste zpět v přítomnosti.</p>
+            <p class="text-sm opacity-80 mt-3 leading-relaxed max-w-xs">Tímto cvičením jste právě úspěšně přerušil cyklus stresu. Uvědomte si tento klid a pokračujte ve svém dni.</p>
+            <button onclick="closeGrounding()" class="mt-8 w-full py-4 bg-white text-slate-900 rounded-2xl font-bold">Zavřít a pokračovat</button>
+        </div>
+    </div>
+
+    <script>
+        // --- STAV APLIKACE ---
+        let state = {
+            isDarkMode: true,
+            activeTab: 'onboarding', // Začínáme onboardingem, pokud není hotový
+            onboardingComplete: false,
+            
+            profile: {
+                hasChildren: false,
+                interests: { dogs: false, cats: false, nature: false, other: false },
+                meds: "Kventiapin, Lamotrigin",
+                supplements: "Vitamín D, Hořčík",
+                allergies: "Žádné",
+                severity: 5, // 0-10
+                psychologistContact: "",
+                notifEnabled: true
+            },
+            
+            weeklyReview: {
+                joy: "", improve: "", plan: "", lookingForward: ""
+            },
+            
+            watchSync: { active: true, sleep: 7.2, steps: 8450, hr: 64 },
+            
+            nutrition: {
+                grapefruit: false, coffee: 2, cigs: 5, alcCount: 0, alcType: 'pivo'
+            }
+        };
+
+        // Načtení paměti
+        const saved = localStorage.getItem('bipo_state_v11_1');
+        if (saved) {
+            try { state = JSON.parse(saved); } catch(e){}
+            if (state.onboardingComplete && state.activeTab === 'onboarding') {
+                state.activeTab = 'dashboard';
+            }
+        }
+
+        // --- ŠABLONY ---
+        const templates = {
+            onboarding: () => `
+                <div class="space-y-6 fade-in pb-10">
+                    <div class="text-center pt-8 pb-4">
+                        <div class="w-16 h-16 bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-400 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <i data-lucide="clipboard-list" class="w-8 h-8"></i>
+                        </div>
+                        <h2 class="text-2xl font-black">Vstupní Profil</h2>
+                        <p class="text-xs opacity-60 mt-2 px-4">Nastavíme aplikaci přímo pro vás. Můžete přeskočit a vyplnit později v Profilu.</p>
+                    </div>
+
+                    <div class="glass p-5 rounded-3xl space-y-4">
+                        <h3 class="font-bold text-sm border-b border-slate-200 dark:border-slate-800 pb-2">1. Rodina & Zájmy</h3>
+                        
+                        <label class="flex items-center gap-3 p-3 bg-slate-50 dark:bg-slate-900/50 rounded-xl cursor-pointer">
+                            <input type="checkbox" ${state.profile.hasChildren ? 'checked' : ''} onchange="state.profile.hasChildren = this.checked" class="w-5 h-5 accent-blue-500">
+                            <span class="text-sm font-bold">Mám děti (Nabízet "Záchranné hry")</span>
+                        </label>
+
+                        <p class="text-xs font-bold mt-4">Co vám dělá radost?</p>
+                        <div class="grid grid-cols-2 gap-2">
+                            ${['dogs:🐕 Psi', 'cats:🐈 Kočky', 'nature:🌲 Příroda', 'other:🎨 Jiné'].map(i => {
+                                const [key, label] = i.split(':');
+                                return `
+                                <label class="cursor-pointer">
+                                    <input type="checkbox" class="hidden custom-check" ${state.profile.interests[key] ? 'checked' : ''} onchange="state.profile.interests['${key}'] = this.checked">
+                                    <div class="p-3 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-bold text-center transition">${label}</div>
+                                </label>`;
+                            }).join('')}
+                        </div>
+                    </div>
+
+                    <div class="glass p-5 rounded-3xl space-y-4">
+                        <h3 class="font-bold text-sm border-b border-slate-200 dark:border-slate-800 pb-2">2. Zdraví & Léky</h3>
+                        <input type="text" value="${state.profile.meds}" onchange="state.profile.meds = this.value" class="w-full bg-slate-50 dark:bg-slate-900 p-3 rounded-xl text-sm border-none focus:ring-2 focus:ring-blue-500" placeholder="Aktuální léky...">
+                        <input type="text" value="${state.profile.supplements}" onchange="state.profile.supplements = this.value" class="w-full bg-slate-50 dark:bg-slate-900 p-3 rounded-xl text-sm border-none focus:ring-2 focus:ring-blue-500" placeholder="Doplňky stravy...">
+                        <input type="text" value="${state.profile.allergies}" onchange="state.profile.allergies = this.value" class="w-full bg-slate-50 dark:bg-slate-900 p-3 rounded-xl text-sm border-none focus:ring-2 focus:ring-blue-500" placeholder="Alergie a nemoci...">
+                    </div>
+
+                    <div class="glass p-5 rounded-3xl space-y-4">
+                        <h3 class="font-bold text-sm border-b border-slate-200 dark:border-slate-800 pb-2">3. Odborný dohled</h3>
+                        <p class="text-xs opacity-70">Zhodnoťte svůj aktuální průměrný stav (0=Klid, 10=Silné výkyvy)</p>
+                        <input type="range" min="0" max="10" value="${state.profile.severity}" onchange="state.profile.severity = this.value" class="w-full accent-blue-500">
+                        <input type="email" value="${state.profile.psychologistContact}" onchange="state.profile.psychologistContact = this.value" class="w-full bg-slate-50 dark:bg-slate-900 p-3 rounded-xl text-sm border-none mt-2" placeholder="Email na psychologa/lékaře (volitelné)">
+                        
+                        <label class="flex items-center gap-3 p-3 mt-2 bg-slate-50 dark:bg-slate-900/50 rounded-xl cursor-pointer">
+                            <input type="checkbox" ${state.profile.notifEnabled ? 'checked' : ''} onchange="state.profile.notifEnabled = this.checked" class="w-5 h-5 accent-blue-500">
+                            <span class="text-xs font-bold">Povolit notifikace na léky</span>
+                        </label>
+                    </div>
+
+                    <div class="flex gap-3">
+                        <button onclick="finishOnboarding()" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-4 rounded-2xl font-black text-sm shadow-lg transition">Uložit a Začít</button>
+                        <button onclick="finishOnboarding()" class="px-6 py-4 bg-slate-200 dark:bg-slate-800 rounded-2xl font-bold text-sm transition">Přeskočit</button>
+                    </div>
+                </div>
+            `,
+            
+            dashboard: () => `
+                <div class="space-y-5 fade-in">
+                    <!-- Integrace Hodinek -->
+                    <div class="p-4 rounded-3xl bg-slate-900 text-white shadow-xl relative overflow-hidden">
+                        <div class="absolute top-0 right-0 p-3 bg-blue-600 rounded-bl-2xl text-[9px] font-black uppercase tracking-widest"><i data-lucide="bluetooth" class="inline w-3 h-3"></i> Připojeno</div>
+                        <h3 class="font-bold text-sm mb-4 flex items-center gap-2"><i data-lucide="watch" class="text-blue-400"></i> Data z hodinek</h3>
+                        <div class="grid grid-cols-3 gap-2 text-center">
+                            <div class="bg-white/10 p-2 rounded-2xl">
+                                <p class="text-[9px] opacity-60 uppercase mb-1">Spánek</p>
+                                <p class="font-bold text-sm text-purple-300">${state.watchSync.sleep} h</p>
+                            </div>
+                            <div class="bg-white/10 p-2 rounded-2xl">
+                                <p class="text-[9px] opacity-60 uppercase mb-1">Kroky</p>
+                                <p class="font-bold text-sm text-emerald-300">${state.watchSync.steps}</p>
+                            </div>
+                            <div class="bg-white/10 p-2 rounded-2xl">
+                                <p class="text-[9px] opacity-60 uppercase mb-1">Tep</p>
+                                <p class="font-bold text-sm text-rose-300">${state.watchSync.hr} bpm</p>
+                            </div>
+                        </div>
+                        <p class="text-[10px] mt-3 text-slate-400 italic text-center">Nemusíte nic vyplňovat. AI sleduje stav pasivně.</p>
+                    </div>
+
+                    <!-- Hry pro mysl (Nové) -->
+                    <div class="glass p-5 rounded-3xl space-y-3">
+                        <h3 class="font-bold text-sm flex items-center gap-2"><i data-lucide="puzzle" class="text-indigo-500"></i> Probuzení a Pohoda</h3>
+                        <div class="grid grid-cols-2 gap-3">
+                            <button onclick="startPexeso()" class="p-4 bg-indigo-50 dark:bg-indigo-900/20 hover:bg-indigo-100 dark:hover:bg-indigo-900/40 rounded-2xl border border-indigo-100 dark:border-indigo-800/50 text-left transition shadow-sm active:scale-95 flex flex-col justify-between h-28">
+                                <div class="text-2xl">🃏</div>
+                                <div>
+                                    <p class="font-bold text-indigo-700 dark:text-indigo-300 text-xs">Pexeso</p>
+                                    <p class="text-[9px] opacity-80 mt-0.5 text-indigo-600 dark:text-indigo-400 font-medium">Soustředění ranní mysli</p>
+                                </div>
+                            </button>
+                            <button onclick="startGrounding()" class="p-4 bg-teal-50 dark:bg-teal-900/20 hover:bg-teal-100 dark:hover:bg-teal-900/40 rounded-2xl border border-teal-100 dark:border-teal-800/50 text-left transition shadow-sm active:scale-95 flex flex-col justify-between h-28">
+                                <div class="text-2xl">🌿</div>
+                                <div>
+                                    <p class="font-bold text-teal-700 dark:text-teal-300 text-xs">Uzemnění</p>
+                                    <p class="text-[9px] opacity-80 mt-0.5 text-teal-600 dark:text-teal-400 font-medium">Klid přes den (5-4-3-2-1)</p>
+                                </div>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Dýchání -->
+                    <button onclick="toggleBreathing()" class="w-full p-5 rounded-3xl bg-gradient-to-r from-cyan-500 to-blue-500 text-white shadow-lg flex items-center justify-between active:scale-95 transition">
+                        <div class="text-left">
+                            <h3 class="font-black text-lg">Hluboké zklidnění</h3>
+                            <p class="text-xs opacity-80">Spustit dýchací cvičení 4-4-4-4</p>
+                        </div>
+                        <div class="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center"><i data-lucide="wind"></i></div>
+                    </button>
+
+                    <!-- Návrh pro děti -->
+                    ${state.profile.hasChildren ? `
+                    <div class="glass p-5 rounded-3xl border-l-4 border-amber-400">
+                        <div class="flex items-center gap-2 mb-2">
+                            <i data-lucide="baby" class="text-amber-500"></i>
+                            <h3 class="font-bold text-sm">Rychlá záchrana: Hry s dětmi</h3>
+                        </div>
+                        <p class="text-xs opacity-80 mb-3">Únava je velká. Zkuste hru v leže:</p>
+                        <div class="bg-amber-50 dark:bg-amber-900/20 p-3 rounded-xl border border-amber-100 dark:border-amber-800">
+                            <p class="font-bold text-xs text-amber-700 dark:text-amber-400">Nemocnice na gauči</p>
+                            <p class="text-[10px] mt-1 opacity-80">Lehněte si na záda. Vy jste pacient (který musí spát). Děti jsou doktoři a nosí vám náplasti a léčí vás. Rozvoj: Empatie a motorika.</p>
+                        </div>
+                    </div>
+                    ` : ''}
+
+                    <!-- Aktuální stav -->
+                    <div class="glass p-5 rounded-3xl">
+                        <h3 class="font-bold text-sm mb-4">Subjektivní pocit (volitelné)</h3>
+                        <div class="flex gap-2">
+                            <button class="flex-1 py-3 bg-slate-100 dark:bg-slate-800 rounded-2xl text-xs font-bold hover:bg-blue-100 dark:hover:bg-blue-900/40 transition">Jsem OK</button>
+                            <button class="flex-1 py-3 bg-slate-100 dark:bg-slate-800 rounded-2xl text-xs font-bold hover:bg-amber-100 dark:hover:bg-amber-900/40 transition text-amber-700 dark:text-amber-400">Neklid</button>
+                            <button class="flex-1 py-3 bg-slate-100 dark:bg-slate-800 rounded-2xl text-xs font-bold hover:bg-red-100 dark:hover:bg-red-900/40 transition text-red-600 dark:text-red-400">Úzko</button>
+                        </div>
+                    </div>
+                </div>
+            `,
+            
+            nutrition: () => `
+                <div class="space-y-5 fade-in">
+                    <h2 class="text-xl font-black">Hlídač & Návyky</h2>
+
+                    <!-- Kontraindikace -->
+                    <div class="glass p-5 rounded-3xl border border-red-200 dark:border-red-900/30">
+                        <h3 class="font-bold text-sm flex items-center gap-2 text-red-600 dark:text-red-400 mb-3"><i data-lucide="shield-alert"></i> Interakce s léky</h3>
+                        <label class="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-900/50 rounded-xl cursor-pointer border border-slate-200 dark:border-slate-800">
+                            <span class="text-xs font-bold">🍊 Snědl jsem Grep / Pomelo</span>
+                            <input type="checkbox" ${state.nutrition.grapefruit ? 'checked' : ''} onchange="state.nutrition.grapefruit = this.checked; render()" class="w-5 h-5 accent-red-500">
+                        </label>
+                        ${state.nutrition.grapefruit && state.profile.meds.toLowerCase().includes('kventiapin') ? `
+                            <div class="mt-3 p-3 bg-red-100 dark:bg-red-900/40 text-red-800 dark:text-red-300 rounded-xl text-[10px] font-bold animate-pulse flex gap-2">
+                                <i data-lucide="alert-triangle" class="w-4 h-4 shrink-0"></i>
+                                VAROVÁNÍ: Grep extrémně zvyšuje hladinu Kventiapinu v krvi! Hrozí silná sedace a toxicita. Dnes Kventiapin s opatrností nebo konzultujte s lékařem!
+                            </div>
+                        ` : ''}
+                    </div>
+
+                    <!-- Toxiny -->
+                    <div class="grid grid-cols-2 gap-4">
+                        <!-- Káva -->
+                        <div class="glass p-4 rounded-3xl text-center space-y-2">
+                            <i data-lucide="coffee" class="w-6 h-6 mx-auto text-amber-600"></i>
+                            <p class="text-xs font-bold">Káva</p>
+                            <div class="flex items-center justify-center gap-3">
+                                <button onclick="updateToxin('coffee', -1)" class="w-8 h-8 bg-slate-100 dark:bg-slate-800 rounded-lg">-</button>
+                                <span class="font-bold">${state.nutrition.coffee}</span>
+                                <button onclick="updateToxin('coffee', 1)" class="w-8 h-8 bg-slate-100 dark:bg-slate-800 rounded-lg">+</button>
+                            </div>
+                        </div>
+                        <!-- Cigarety -->
+                        <div class="glass p-4 rounded-3xl text-center space-y-2">
+                            <i data-lucide="wind" class="w-6 h-6 mx-auto text-slate-500"></i>
+                            <p class="text-xs font-bold">Cigarety</p>
+                            <div class="flex items-center justify-center gap-3">
+                                <button onclick="updateToxin('cigs', -1)" class="w-8 h-8 bg-slate-100 dark:bg-slate-800 rounded-lg">-</button>
+                                <span class="font-bold">${state.nutrition.cigs}</span>
+                                <button onclick="updateToxin('cigs', 1)" class="w-8 h-8 bg-slate-100 dark:bg-slate-800 rounded-lg">+</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Alkohol -->
+                    <div class="glass p-5 rounded-3xl space-y-3">
+                        <div class="flex justify-between items-center">
+                            <h3 class="font-bold text-sm flex items-center gap-2"><i data-lucide="wine" class="text-purple-500"></i> Alkohol</h3>
+                            <div class="flex items-center gap-2">
+                                <button onclick="updateToxin('alcCount', -1)" class="w-6 h-6 bg-slate-100 dark:bg-slate-800 rounded shadow text-xs">-</button>
+                                <span class="text-sm font-bold w-4 text-center">${state.nutrition.alcCount}</span>
+                                <button onclick="updateToxin('alcCount', 1)" class="w-6 h-6 bg-slate-100 dark:bg-slate-800 rounded shadow text-xs">+</button>
+                            </div>
+                        </div>
+                        <select onchange="state.nutrition.alcType = this.value; render()" class="w-full bg-slate-50 dark:bg-slate-900 p-3 rounded-xl text-xs outline-none">
+                            <option value="pivo" ${state.nutrition.alcType === 'pivo' ? 'selected' : ''}>Pivo (Slabší, ale tlumí)</option>
+                            <option value="vino" ${state.nutrition.alcType === 'vino' ? 'selected' : ''}>Víno (Pozor na histamin)</option>
+                            <option value="tvrde" ${state.nutrition.alcType === 'tvrde' ? 'selected' : ''}>Tvrdé (Riziko agrese)</option>
+                        </select>
+                    </div>
+                </div>
+            `,
+            
+            weekly: () => `
+                <div class="space-y-5 fade-in">
+                    <div class="p-6 bg-gradient-to-br from-indigo-800 to-purple-900 rounded-3xl text-white shadow-xl">
+                        <h2 class="text-2xl font-black mb-1">Týdenní Reflexe</h2>
+                        <p class="text-xs opacity-70">Udělejte si čas na zhodnocení posledních 7 dní. Pomáhá to AI pochopit vaše spouštěče.</p>
+                    </div>
+
+                    <div class="space-y-4">
+                        <div class="glass p-4 rounded-2xl">
+                            <label class="text-xs font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-widest flex items-center gap-1 mb-2"><i data-lucide="check-circle-2" class="w-4 h-4"></i> Co se povedlo / Radost</label>
+                            <textarea onchange="state.weeklyReview.joy = this.value; saveState()" class="w-full bg-transparent text-sm border-none focus:ring-0 p-0 placeholder:text-slate-400" rows="2" placeholder="Např: Zvládl jsem práci bez stresu, šel jsem ven se psem...">${state.weeklyReview.joy}</textarea>
+                        </div>
+
+                        <div class="glass p-4 rounded-2xl">
+                            <label class="text-xs font-bold text-amber-600 dark:text-amber-500 uppercase tracking-widest flex items-center gap-1 mb-2"><i data-lucide="trending-up" class="w-4 h-4"></i> Co bych zlepšil</label>
+                            <textarea onchange="state.weeklyReview.improve = this.value; saveState()" class="w-full bg-transparent text-sm border-none focus:ring-0 p-0 placeholder:text-slate-400" rows="2" placeholder="Např: Omezit kávu večer, jít dřív spát...">${state.weeklyReview.improve}</textarea>
+                        </div>
+
+                        <div class="glass p-4 rounded-2xl border-l-4 border-blue-500">
+                            <label class="text-xs font-bold text-blue-600 dark:text-blue-400 uppercase tracking-widest flex items-center gap-1 mb-2"><i data-lucide="calendar" class="w-4 h-4"></i> Plány (Co bude těžké)</label>
+                            <textarea onchange="state.weeklyReview.plan = this.value; saveState()" class="w-full bg-transparent text-sm border-none focus:ring-0 p-0 placeholder:text-slate-400" rows="2" placeholder="Např: Těžká porada ve středu. Musím si vzít Rivotril do kapsy...">${state.weeklyReview.plan}</textarea>
+                        </div>
+
+                        <div class="glass p-4 rounded-2xl border-l-4 border-purple-500">
+                            <label class="text-xs font-bold text-purple-600 dark:text-purple-400 uppercase tracking-widest flex items-center gap-1 mb-2"><i data-lucide="star" class="w-4 h-4"></i> Na co se těším</label>
+                            <textarea onchange="state.weeklyReview.lookingForward = this.value; saveState()" class="w-full bg-transparent text-sm border-none focus:ring-0 p-0 placeholder:text-slate-400" rows="2" placeholder="Např: Víkend s dětmi, nová hra...">${state.weeklyReview.lookingForward}</textarea>
+                        </div>
+                        
+                        <button onclick="alert('Uloženo pro psychologa!');" class="w-full py-4 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-2xl font-bold text-sm shadow-lg active:scale-95 transition">Uložit týdenní záznam</button>
+                    </div>
+                </div>
+            `,
+            
+            settings: () => `
+                <div class="space-y-4 fade-in">
+                    <h2 class="text-xl font-black px-2">Nastavení Profilu</h2>
+                    
+                    <div class="glass p-5 rounded-3xl space-y-4">
+                        <button onclick="state.onboardingComplete=false; state.activeTab='onboarding'; render()" class="w-full py-3 bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400 rounded-xl text-xs font-bold flex items-center justify-center gap-2">
+                            <i data-lucide="edit-3" class="w-4 h-4"></i> Upravit vstupní dotazník
+                        </button>
+                    </div>
+
+                    <div class="glass p-5 rounded-3xl space-y-3">
+                        <p class="text-xs font-bold opacity-50 uppercase tracking-widest">Shrnutí dat</p>
+                        <p class="text-sm font-bold flex items-center gap-2"><i data-lucide="baby" class="w-4 h-4 text-slate-400"></i> Děti: ${state.profile.hasChildren ? 'Ano' : 'Ne'}</p>
+                        <p class="text-sm font-bold flex items-center gap-2"><i data-lucide="pill" class="w-4 h-4 text-slate-400"></i> Léky: <span class="font-normal opacity-80">${state.profile.meds || '-'}</span></p>
+                        <p class="text-sm font-bold flex items-center gap-2"><i data-lucide="stethoscope" class="w-4 h-4 text-slate-400"></i> Doktor: <span class="font-normal opacity-80 text-blue-500">${state.profile.psychologistContact || 'Nenastaveno'}</span></p>
+                        <p class="text-sm font-bold flex items-center gap-2"><i data-lucide="bell" class="w-4 h-4 text-slate-400"></i> Notifikace: ${state.profile.notifEnabled ? 'Zapnuté' : 'Vypnuté'}</p>
+                    </div>
+                    
+                    ${state.profile.psychologistContact ? `
+                        <button onclick="window.location.href='mailto:${state.profile.psychologistContact}?subject=Týdenní report biPo Heal'" class="w-full py-4 bg-emerald-600 text-white rounded-2xl font-bold shadow-lg flex items-center justify-center gap-2 active:scale-95 transition">
+                            <i data-lucide="send" class="w-5 h-5"></i> Odeslat data lékaři
+                        </button>
+                    ` : ''}
+                </div>
+            `
+        };
+
+        // --- HERNÍ LOGIKA: PEXESO ---
+        let pexesoFlipped = [];
+        let pexesoMatched = 0;
+        const pexesoEmojis = ['🌞', '🌙', '⭐', '☁️', '🌲', '🌊'];
+        let pexesoDeck = [];
+
+        function startPexeso() {
+            document.getElementById('pexeso-overlay').classList.remove('hidden');
+            document.getElementById('pexeso-overlay').classList.add('flex');
+            document.getElementById('pexeso-win').classList.add('hidden');
+            
+            pexesoMatched = 0;
+            pexesoFlipped = [];
+            pexesoDeck = [...pexesoEmojis, ...pexesoEmojis].sort(() => Math.random() - 0.5);
+            
+            const grid = document.getElementById('pexeso-grid');
+            grid.innerHTML = pexesoDeck.map((emoji, i) => `
+                <div onclick="flipPexesoCard(${i}, this)" class="pexeso-card w-[70px] h-[70px] bg-slate-700 rounded-2xl flex items-center justify-center text-3xl cursor-pointer shadow-lg mx-auto">
+                    <span class="opacity-0 transition-opacity duration-200" data-val="${emoji}">${emoji}</span>
+                </div>
+            `).join('');
+        }
+
+        function flipPexesoCard(index, el) {
+            if(pexesoFlipped.length >= 2 || el.classList.contains('pexeso-matched') || pexesoFlipped.includes(el)) return;
+            
+            el.querySelector('span').classList.remove('opacity-0');
+            el.classList.replace('bg-slate-700', 'bg-slate-600');
+            pexesoFlipped.push(el);
+
+            if(pexesoFlipped.length === 2) {
+                setTimeout(checkPexesoMatch, 600);
+            }
+        }
+
+        function checkPexesoMatch() {
+            const [c1, c2] = pexesoFlipped;
+            const val1 = c1.querySelector('span').dataset.val;
+            const val2 = c2.querySelector('span').dataset.val;
+
+            if(val1 === val2) {
+                c1.classList.add('pexeso-matched', 'bg-emerald-600');
+                c2.classList.add('pexeso-matched', 'bg-emerald-600');
+                pexesoMatched++;
+                if(pexesoMatched === pexesoEmojis.length) {
+                    document.getElementById('pexeso-win').classList.remove('hidden');
+                    document.getElementById('pexeso-win').classList.add('flex');
+                }
+            } else {
+                c1.querySelector('span').classList.add('opacity-0');
+                c2.querySelector('span').classList.add('opacity-0');
+                c1.classList.replace('bg-slate-600', 'bg-slate-700');
+                c2.classList.replace('bg-slate-600', 'bg-slate-700');
+            }
+            pexesoFlipped = [];
+        }
+
+        function closePexeso() {
+            document.getElementById('pexeso-overlay').classList.add('hidden');
+            document.getElementById('pexeso-overlay').classList.remove('flex');
+        }
+
+        // --- HERNÍ LOGIKA: UZEMNĚNÍ (HLEDAČ) ---
+        const groundingPrompts = [
+            { text: "Najdi ve svém okolí něco MODRÉHO", color: "text-blue-400" },
+            { text: "Najdi předmět, který je na dotek MĚKKÝ", color: "text-purple-400" },
+            { text: "Najdi ve svém okolí něco ZELENÉHO", color: "text-emerald-400" },
+            { text: "Najdi předmět, který má TVAR KRUHU", color: "text-amber-400" },
+            { text: "Zaposlouchej se: Najdi jeden ZVUK v místnosti", color: "text-slate-300" }
+        ];
+        let groundingCount = 0;
+
+        function startGrounding() {
+            document.getElementById('grounding-overlay').classList.remove('hidden');
+            document.getElementById('grounding-overlay').classList.add('flex');
+            document.getElementById('grounding-win').classList.add('hidden');
+            document.getElementById('grounding-win').classList.remove('flex');
+            document.getElementById('grounding-content').classList.remove('hidden');
+            document.getElementById('grounding-content').classList.add('flex');
+            
+            groundingCount = 0;
+            nextGroundingPrompt();
+        }
+
+        function nextGroundingPrompt() {
+            const prompt = groundingPrompts[Math.floor(Math.random() * groundingPrompts.length)];
+            const textEl = document.getElementById('grounding-text');
+            textEl.innerText = prompt.text;
+            textEl.className = `text-2xl font-black text-center mb-6 leading-tight ${prompt.color}`;
+            document.getElementById('grounding-progress').innerText = `${groundingCount}/3 nalezeno`;
+        }
+
+        function foundGroundingItem() {
+            groundingCount++;
+            if(groundingCount >= 3) {
+                document.getElementById('grounding-content').classList.add('hidden');
+                document.getElementById('grounding-content').classList.remove('flex');
+                document.getElementById('grounding-win').classList.remove('hidden');
+                document.getElementById('grounding-win').classList.add('flex');
+            } else {
+                nextGroundingPrompt();
+            }
+        }
+
+        function closeGrounding() {
+            document.getElementById('grounding-overlay').classList.add('hidden');
+            document.getElementById('grounding-overlay').classList.remove('flex');
+        }
+
+        // --- ZÁKLADNÍ FUNKCE ---
+        function render() {
+            const content = document.getElementById('app-content');
+            if (!content) return;
+
+            const nav = document.getElementById('main-nav');
+            if (state.activeTab === 'onboarding') {
+                nav.style.display = 'none';
+            } else {
+                nav.style.display = 'flex';
+            }
+
+            content.innerHTML = templates[state.activeTab]();
+            if (typeof lucide !== 'undefined') lucide.createIcons();
+
+            document.querySelectorAll('.nav-btn').forEach((btn, i) => {
+                const tabs = ['dashboard', 'nutrition', 'weekly', 'settings'];
+                const isActive = state.activeTab === tabs[i];
+                btn.classList.toggle('opacity-100', isActive);
+                btn.classList.toggle('text-blue-500', isActive);
+            });
+
+            saveState();
+        }
+
+        function saveState() {
+            localStorage.setItem('bipo_state_v11_1', JSON.stringify(state));
+        }
+
+        function openTab(tab) { 
+            state.activeTab = tab; 
+            window.scrollTo(0,0);
+            render(); 
+        }
+        
+        function finishOnboarding() {
+            state.onboardingComplete = true;
+            openTab('dashboard');
+        }
+
+        function toggleDarkMode() {
+            state.isDarkMode = !state.isDarkMode;
+            document.documentElement.classList.toggle('dark', state.isDarkMode);
+            const icon = document.getElementById('theme-icon');
+            if(icon && typeof lucide !== 'undefined') icon.setAttribute('data-lucide', state.isDarkMode ? 'moon' : 'sun');
+            if (typeof lucide !== 'undefined') lucide.createIcons();
+            saveState();
+        }
+
+        function updateToxin(key, val) {
+            state.nutrition[key] = Math.max(0, state.nutrition[key] + val);
+            render();
+        }
+
+        function toggleBreathing() {
+            const overlay = document.getElementById('breathe-overlay');
+            if (overlay.classList.contains('hidden')) {
+                overlay.classList.remove('hidden');
+                overlay.classList.add('flex');
+            } else {
+                overlay.classList.add('hidden');
+                overlay.classList.remove('flex');
+            }
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            if(state.isDarkMode) document.documentElement.classList.add('dark');
+            render();
+            setTimeout(() => {
+                if (typeof lucide !== 'undefined') {
+                    lucide.createIcons();
+                    const icon = document.getElementById('theme-icon');
+                    if(icon) icon.setAttribute('data-lucide', state.isDarkMode ? 'moon' : 'sun');
+                }
+            }, 100);
+        });
+    </script>
+</body>
+</html>

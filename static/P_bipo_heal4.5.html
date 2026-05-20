@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>P biPo Heal v4.5</title>
+    <style>
+        :root {
+            --primary-color: #4A90E2;
+            --bg-color: #f4f4f9;
+            --text-color: #333;
+            --card-bg: #ffffff;
+            --danger-color: #d9534f;
+            --success-color: #5cb85c;
+        }
+
+        body.dark-mode {
+            --bg-color: #1a1a1a;
+            --text-color: #f4f4f9;
+            --card-bg: #2d2d2d;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            transition: all 0.3s ease;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .container {
+            max-width: 600px;
+            width: 100%;
+            background: var(--card-bg);
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+
+        .header { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            margin-bottom: 25px; 
+        }
+
+        h1 { margin: 0; font-size: 24px; color: var(--primary-color); }
+
+        .btn {
+            padding: 10px 15px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: transform 0.1s, opacity 0.2s;
+        }
+
+        .btn:hover { opacity: 0.9; }
+        .btn:active { transform: scale(0.98); }
+
+        .btn-primary { background-color: var(--primary-color); color: white; width: 100%; padding: 12px;}
+        .btn-danger { background-color: var(--danger-color); color: white; width: 100%; padding: 12px; margin-top: 10px;}
+        .btn-toggle { background-color: #555; color: white; }
+
+        /* Vizuální sekce */
+        .visual-section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 25px;
+            background: rgba(0,0,0,0.03);
+            padding: 15px;
+            border-radius: 10px;
+        }
+
+        #display-image {
+            max-width: 100%;
+            height: auto;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            object-fit: cover;
+            max-height: 300px;
+        }
+
+        /* Hudební sekce */
+        .music-section {
+            margin-bottom: 25px;
+            padding: 15px;
+            background: rgba(74, 144, 226, 0.1);
+            border-radius: 10px;
+            border-left: 4px solid var(--primary-color);
+        }
+
+        .music-controls {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        /* Formulářové prvky */
+        .input-group { margin-bottom: 20px; }
+        label { display: block; margin-bottom: 8px; font-weight: 600; font-size: 14px;}
+        
+        input[type="text"], select, textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            box-sizing: border-box;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: inherit;
+        }
+
+        textarea { resize: vertical; min-height: 80px; }
+
+        /* Alergie */
+        #allergy-details {
+            margin-top: 15px;
+            padding: 15px;
+            background: rgba(217, 83, 79, 0.05);
+            border-left: 4px solid var(--danger-color);
+            border-radius: 0 8px 8px 0;
+            display: none;
+        }
+
+        hr { border: 0; border-top: 1px solid #ddd; margin: 25px 0; }
+        
+        .save-section { text-align: center; margin-top: 30px; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <h1>P biPo Heal <small style="font-size: 0.6em; color: #888;">v4.5</small></h1>
+        <button onclick="toggleDarkMode()" class="btn btn-toggle">🌙 / ☀️</button>
+    </div>
+
+    <div class="visual-section">
+        <img id="display-image" src="

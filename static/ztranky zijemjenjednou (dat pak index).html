@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zijemjenjednou.cz | P biPo Heal</title>
+    <style>
+        :root {
+            --primary: #4fc3f7; --secondary: #81c784; --dark: #2c3e50; 
+            --accent: #ffb74d; --light: #f9fbe7;
+        }
+        body { font-family: 'Segoe UI', Arial, sans-serif; margin: 0; background: var(--light); color: var(--dark); line-height: 1.6; }
+        header { background: white; padding: 20px; text-align: center; border-bottom: 5px solid var(--primary); }
+        .hero { background: linear-gradient(135deg, var(--primary), var(--secondary)); color: white; padding: 60px 20px; text-align: center; }
+        .container { max-width: 900px; margin: auto; padding: 20px; }
+        .card { background: white; border-radius: 20px; padding: 30px; margin-bottom: 30px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); }
+        h1, h2 { color: var(--dark); }
+        .btn { background: var(--primary); color: white; border: none; padding: 15px 30px; border-radius: 50px; cursor: pointer; font-size: 1.1em; font-weight: bold; text-decoration: none; display: inline-block; transition: 0.3s; }
+        .btn:hover { transform: scale(1.05); background: var(--secondary); }
+        
+        /* Demo App v4.4 Style */
+        #demo-app { border: 4px dashed var(--primary); padding: 20px; border-radius: 15px; background: #fff; }
+        .timer-box { font-size: 1.5em; font-weight: bold; color: #e74c3c; text-align: center; margin-bottom: 20px; }
+        
+        /* Investor Section */
+        #investor-portal { background: #eee; padding: 20px; border-radius: 15px; display: none; }
+        .lock-icon { font-size: 3em; display: block; margin-bottom: 10px; }
+    </style>
+</head>
+<body>
+
+<header>
+    <img src="logo.png" alt="Logo Zijemjenjednou.cz" style="max-height: 80px; display: none;"> <h1>Žijem jen jednou</h1>
+</header>
+
+<section class="hero">
+    <h2>Cesta k vnitřní stabilitě a radosti</h2>
+    <p>Pomáháme lidem s bipolární poruchou i rodičům dětí od 3 let objevovat sílu rovnováhy.</p>
+</section>
+
+<div class="container">
+    <div class="card">
+        <h2>Kdo jsme a kam kráčíme?</h2>
+        <p>Projekt <strong>P biPo Heal</strong> vznikl na základě čtrnáctileté osobní zkušenosti s léčbou. Naším cílem není jen aplikace, ale vytvoření komunity a nástrojů pod odbornou záštitou (spolupracujeme na vizích s odborníky z NUDZ).</p>
+        <p>Pro dospělé (20–50 let) nabízíme sofistikovaný monitoring stavů, a pro ty nejmenší (3–10 let) kreativní hry pro rozvoj motoriky a představivosti.</p>
+    </div>
+
+    <div class="card">
+        <div id="timer" class="timer-box">Zbývá vám: 14 dní 00:00:00</div>
+        <h2>Zkušební verze aplikace v4.4</h2>
+        <div id="demo-app">
+            <h3>P biPo Heal v4.4 - Dashboard</h3>
+            <div style="background: #f0f0f0; padding: 15px; border-radius: 10px; margin-bottom: 10px;">
+                <label>Dnešní nálada (1-10):</label>
+                <input type="range" min="1" max="10" value="5" style="width: 100%;">
+            </div>
+            <div style="background: #f0f0f0; padding: 15px; border-radius: 10px; margin-bottom: 10px;">
+                <label>Užité léky:</label><br>
+                <input type="checkbox"> Ranní dávka | <input type="checkbox"> Večerní dávka
+            </div>
+            <button class="btn" style="width: 100%;" onclick="alert('V demo verzi se data ukládají pouze lokálně.')">Uložit záznam</button>
+        </div>
+    </div>
+
+    <div class="card" id="investor-gate">
+        <span class="lock-icon">🔒</span>
+        <h2>Sekce pro partnery a investory</h2>
+        <p>Zde naleznete náhledy verzí 9.5, 10.2 a technickou dokumentaci.</p>
+        <input type="password" id="inv-pass" placeholder="Zadejte přístupové heslo" style="padding: 10px; width: 200px; border-radius: 5px;">
+        <button class="btn" onclick="checkAccess()">Vstoupit</button>
+    </div>
+
+    <div id="investor-portal" class="card">
+        <h2>Vítejte, pane investore</h2>
+        <p>Zde jsou exkluzivní náhledy našich nejnovějších systémů s AI predikcí a Ghost protokolem.</p>
+        <ul>
+            <li><strong>Verze 10.3:</strong> Plná integrace biorytmů a hlasových deníků.</li>
+            <li><strong>Mise NUDZ:</strong> Strategie zapojení peer-konzultantů do vývoje.</li>
+        </ul>
+        <button class="btn" onclick="location.reload()">Odhlásit se</button>
+    </div>
+</div>
+
+<footer style="text-align: center; padding: 40px; color: #777; font-size: 0.9em;">
+    &copy; 2026 Zijemjenjednou.cz | Všechna práva vyhrazena.
+</footer>
+
+<script>
+    /* 1. Odpočítávadlo 14 dní (Šifrované v localStorage) */
+    function startTimer() {
+        const FOURTEEN_DAYS = 14 * 24 * 60 * 60 * 1000;
+        let firstVisit = localStorage.getItem('zj1_init');
+        
+        if (!firstVisit) {
+            firstVisit = Date.now();
+            localStorage.setItem('zj1_init', firstVisit);
+        }
+
+        const countdownInterval = setInterval(() => {
+            const now = Date.now();
+            const elapsed = now - firstVisit;
+            const remaining = FOURTEEN_DAYS - elapsed;
+
+            if (remaining <= 0) {
+                document.getElementById('timer').innerText = "Zkušební doba vypršela.";
+                document.getElementById('demo-app').innerHTML = "<p>Demo verze již není aktivní. Pro plný přístup nás kontaktujte.</p>";
+                clearInterval(countdownInterval);
+                return;
+            }
+
+            const days = Math.floor(remaining / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((remaining % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const mins = Math.floor((remaining % (1000 * 60 * 60)) / (1000 * 60));
+            const secs = Math.floor((remaining % (1000 * 60)) / 1000);
+
+            document.getElementById('timer').innerText = `Zbývá vám: ${days} dní ${hours.toString().padStart(2,'0')}:${mins.toString().padStart(2,'0')}:${secs.toString().padStart(2,'0')}`;
+        }, 1000);
+    }
+
+    /* 2. Přístup pro investory (Jednoduché heslo - pro ukázku) */
+    function checkAccess() {
+        const pass = document.getElementById('inv-pass').value;
+        // Heslo pro ukázku je "NUDZ2026"
+        if (pass === "NUDZ2026") {
+            document.getElementById('investor-gate').style.display = "none";
+            document.getElementById('investor-portal').style.display = "block";
+        } else {
+            alert("Nesprávné heslo. Kontaktujte správce Zijemjenjednou.cz.");
+        }
+    }
+
+    window.onload = startTimer;
+</script>
+
+</body>
+</html>
