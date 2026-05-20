@@ -1,0 +1,410 @@
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Syntetizátor: Evoluce Tónu a Světla</title>
+    <style>
+        :root {
+            --bg-color: #0d1117;
+            --text-color: #c9d1d9;
+            --accent-red: #ff7b72;
+            --accent-blue: #79c0ff;
+            --fire-core: #ffea00;
+            --methane-glow: #00f2fe;
+            --glow: 0px 0px 0px rgba(255, 200, 150, 0);
+        }
+        * { box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0; padding: 15px;
+            display: flex; justify-content: center;
+            overflow-x: hidden;
+            transition: background-color 0.1s ease;
+        }
+        .app-container {
+            max-width: 600px; width: 100%;
+            background: rgba(22, 27, 34, 0.9);
+            padding: 20px; border-radius: 15px;
+            box-shadow: 0 4px 30px rgba(0,0,0,0.5), var(--glow);
+            border: 1px solid #30363d;
+            position: relative; z-index: 10;
+        }
+        h1 { color: var(--accent-red); text-align: center; font-weight: 300; letter-spacing: 2px; font-size: 1.5em; margin: 10px 0; }
+        .subtitle { text-align: center; font-style: italic; color: #8b949e; margin-bottom: 20px; font-size: 0.85em; }
+        
+        .panel {
+            background: rgba(33, 38, 45, 0.8);
+            padding: 15px; border-radius: 10px;
+            margin-bottom: 15px; border-left: 4px solid var(--accent-blue);
+        }
+        .panel h3 { margin-top: 0; color: var(--accent-blue); font-weight: 400; font-size: 1.1em; }
+        
+        label { display: block; margin-top: 10px; font-size: 0.85em; color: #e6edf3; }
+        .control-group { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+        input[type=range] { flex-grow: 1; cursor: pointer; accent-color: var(--accent-blue); height: 8px; }
+        .val-display { font-family: monospace; color: #8b949e; font-size: 0.8em; min-width: 45px; text-align: right;}
+
+        .btn-group { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 15px; }
+        button {
+            background: #238636; color: #fff; border: none; padding: 10px 12px;
+            border-radius: 6px; cursor: pointer; font-size: 13px; transition: background 0.2s;
+            flex: 1; min-width: 100px; font-weight: 500;
+        }
+        button:hover { background: #2ea043; }
+        button.active { background: #da3633; }
+        .btn-special { background: var(--accent-red); font-weight: bold; }
+        .btn-special:hover { background: #ff5048; }
+        .btn-light-sim { background: #6e7681; border: 1px solid transparent; }
+        .btn-light-sim.active { background: #fff; color: #000; border-color: #ccc;}
+
+        .console {
+            background: #000; color: #3fb950;
+            font-family: 'Courier New', monospace; padding: 10px;
+            border-radius: 8px; height: 140px; overflow-y: auto;
+            font-size: 0.8em; line-height: 1.3; box-shadow: inset 0 0 10px rgba(0,0,0,0.8);
+        }
+
+        /* Varování na epilepsii */
+        .seizure-warning {
+            font-size: 0.7em; color: #8b949e; background: rgba(0,0,0,0.4);
+            padding: 8px; border-radius: 4px; border: 1px solid #443; margin-top: 10px;
+        }
+
+        /* Překryvy pro simulace */
+        #bang-canvas, #light-sim-overlay {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            pointer-events: none; z-index: 100;
+        }
+        #bang-canvas { opacity: 0; transition: opacity 0.1s ease; }
+        #light-sim-overlay { background-color: white; opacity: 0; }
+
+        .binary-bg {
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            pointer-events: none; opacity: 0.02; overflow: hidden;
+            font-family: monospace; font-size: 18px; z-index: 1; word-break: break-all;
+        }
+    </style>
+</head>
+<body>
+    <div class="binary-bg" id="binary-bg"></div>
+    
+    <canvas id="bang-canvas"></canvas>
+    
+    <div id="light-sim-overlay"></div>
+
+    <div class="app-container" id="app">
+        <h1>Evoluce Tónu a Světla</h1>
+        <div class="subtitle">Kód pro Láskyplný tón (Dynamický) | BUM -> Blikání :-)</div>
+
+        <div class="panel">
+            <h3>1. Modulace (Organický syntezátor)</h3>
+            <p style="font-size: 0.8em; color: #8b949e; margin: 0 0 10px 0;">Organické proměnné tóny. Srdce (pulzy) + Dech (vlny).</p>
+            
+            <label>Tep Srdce (Rytmus)</label>
+            <div class="control-group">
+                <input type="range" id="heartRate" min="30" max="180" value="60">
+                <span class="val-display" id="heartRateVal">60 BPM</span>
+            </div>
+            
+            <label>Dech (Modulace výšky)</label>
+            <div class="control-group">
+                <input type="range" id="breathRate" min="4" max="30" value="12">
+                <span class="val-display" id="breathRateVal">12 CPM</span>
+            </div>
+            
+            <div class="btn-group">
+                <button onclick="toggleAudio()" id="audioBtn">Spustit Dynamický tón</button>
+            </div>
+        </div>
+
+        <div class="panel">
+            <h3>2. Psycho Walkman (Displej)</h3>
+            <p style="font-size: 0.8em; color: #8b949e; margin: 0;">Frekvenční blikání obrazovky pro stimulaci mozku.</p>
+            
+            <div class="btn-group">
+                <button class="btn-light-sim" onclick="startLightSim(10, 'Alpha')" id="btn-alpha">Alpha (10Hz)</button>
+                <button class="btn-light-sim" onclick="startLightSim(20, 'Beta')" id="btn-beta">Beta (20Hz)</button>
+                <button class="btn-light-sim" onclick="startLightSim(6, 'Theta')" id="btn-theta">Theta (6Hz)</button>
+            </div>
+            <div class="seizure-warning">
+                <strong>VAROVÁNÍ:</strong> Fotostimulace může vyvolat epileptický záchvat. Nepoužívejte, pokud máte citlivost na světlo. Kliknutím na displej blikání okamžitě zastavíte.
+            </div>
+        </div>
+
+        <div class="panel" style="border-left-color: var(--accent-red);">
+            <h3>Vědomí: Velký Třesk & Evoluce</h3>
+            <div class="btn-group">
+                <button class="btn-special" onclick="triggerBigBang()">1. VELKÝ TŘESK (BUM)</button>
+            </div>
+            <div class="btn-group" style="margin-top: 10px;">
+                <button onclick="logEvent('Učíme se: CHODIT')">Chodit</button>
+                <button onclick="logEvent('Urychlení: BĚHAT')">Běhat</button>
+                <button class="btn-special" style="background:#a371f7" onclick="logEvent('NOW I FEEL IT (Létáme)')">LÉTAT :-)</button>
+            </div>
+        </div>
+
+        <div class="panel">
+            <h3>Terminál: Chemická Syntéza</h3>
+            <div class="console" id="console">
+                [Systém] Verze 2.0. Dynamická modulace aktivní.<br>
+                [Stav] Čekám na Velký Třesk...<br>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- POMOCNÉ FUNKCE ---
+        const $ = (id) => document.getElementById(id);
+        const logEvent = (msg) => {
+            const time = new Date().toLocaleTimeString();
+            $('console').innerHTML += `[${time}] ${msg}<br>`;
+            $('console').scrollTop = $('console').scrollHeight;
+        };
+
+        // --- ZVUKOVÝ SYNTEZÁTOR (Dynamický) ---
+        let audioCtx, heartGain, breathFilter;
+        let isAudioPlaying = false;
+        let audioSequenceInterval;
+
+        const updateAudioDisplays = () => {
+            $('heartRateVal').innerText = $('heartRate').value + " BPM";
+            $('breathRateVal').innerText = $('breathRate').value + " CPM";
+        }
+        $('heartRate').oninput = updateAudioDisplays;
+        $('breathRate').oninput = updateAudioDisplays;
+
+        function toggleAudio() {
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            
+            if (isAudioPlaying) {
+                clearInterval(audioSequenceInterval);
+                audioCtx.suspend();
+                isAudioPlaying = false;
+                $('audioBtn').innerText = "Spustit Dynamický tón";
+                $('audioBtn').classList.remove('active');
+                logEvent("Tón zastaven.");
+            } else {
+                audioCtx.resume();
+                setupAudioNodes();
+                startOrganidRhythm();
+                isAudioPlaying = true;
+                $('audioBtn').innerText = "Zastavit tón";
+                $('audioBtn').classList.add('active');
+                logEvent("Dynamický Láskyplný tón spuštěn.");
+            }
+        }
+
+        function setupAudioNodes() {
+            // Filtr pro modulaci dechem
+            breathFilter = audioCtx.createBiquadFilter();
+            breathFilter.type = 'lowpass';
+            breathFilter.connect(audioCtx.destination);
+
+            // Hlavní regulace hlasitosti
+            heartGain = audioCtx.createGain();
+            heartGain.gain.value = 0.3; // Bezpečná hlasitost
+            heartGain.connect(breathFilter);
+        }
+
+        // Simulace organického rytmu (Tep + Dech)
+        function startOrganidRhythm() {
+            const beatFunc = () => {
+                const bpm = parseInt($('heartRate').value);
+                const cpm = parseInt($('breathRate').value);
+
+                // 1. Simulace Tepu (Krátký pulz)
+                const osc = audioCtx.createOscillator();
+                const beatGain = audioCtx.createGain();
+                osc.type = 'sine';
+                
+                // Hluboký tep (60-80Hz)
+                osc.frequency.setValueAtTime(70, audioCtx.currentTime);
+                
+                // Obálka tepu (velmi krátký pulz)
+                beatGain.gain.setValueAtTime(0, audioCtx.currentTime);
+                beatGain.gain.linearRampToValueAtTime(1, audioCtx.currentTime + 0.01);
+                beatGain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.1);
+                
+                osc.connect(beatGain);
+                beatGain.connect(heartGain);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.15);
+
+                // 2. Modulace Výšky dechem (Pomalá vlna)
+                // CPM na frekvenci v Hz (pomalá modulace)
+                const breathFreq = cpm / 60; 
+                const time = audioCtx.currentTime;
+                // Vlna měnící frekvenci filtru (300Hz až 1500Hz)
+                const filterCutoff = 800 + Math.sin(time * breathFreq * Math.PI * 2) * 500;
+                breathFilter.frequency.setValueAtTime(filterCutoff, time);
+
+                // Naplánování dalšího tepu
+                const intervalMs = (60 / bpm) * 1000;
+                clearInterval(audioSequenceInterval);
+                audioSequenceInterval = setTimeout(beatFunc, intervalMs);
+            };
+
+            beatFunc(); // Spustit první
+        }
+
+        // --- VELKÝ TŘESK VISUÁL (Oheň a metan) ---
+        const canvas = $('bang-canvas');
+        const ctx = canvas.getContext('2d');
+        let particles = [];
+        let bangAnimationId;
+
+        function triggerBigBang() {
+            logEvent("<span style='color:#ff7b72; font-weight:bold;'>*** VELKÝ TŘESK (BUM) ***</span>");
+            logEvent("Zrod OHNĚ a METANOVÝCH PLYNŮ.");
+
+            // Zvukový efekt třesku
+            if(audioCtx) {
+                const noise = audioCtx.createOscillator();
+                noise.type = 'sawtooth';
+                noise.frequency.setValueAtTime(40, audioCtx.currentTime);
+                const noiseGain = audioCtx.createGain();
+                noiseGain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.5);
+                noise.connect(noiseGain);
+                noiseGain.connect(audioCtx.destination);
+                noise.start(); noise.stop(audioCtx.currentTime + 0.5);
+            }
+
+            // Inicializace částic
+            particles = [];
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            canvas.style.opacity = 1;
+            
+            const centerX = canvas.width / 2;
+            const centerY = canvas.height / 2;
+
+            for(let i=0; i<300; i++) {
+                particles.push({
+                    x: centerX,
+                    y: centerY,
+                    radius: Math.random() * 5 + 1,
+                    // Oheň (červená/žlutá) vs Metan (modrá/tyrkysová)
+                    color: Math.random() > 0.4 ? `hsl(${Math.random()*40+10}, 100%, 60%)` : `hsl(${Math.random()*50+170}, 100%, 60%)`,
+                    velocity: {
+                        x: (Math.random() - 0.5) * 15,
+                        y: (Math.random() - 0.5) * 15
+                    },
+                    life: Math.random() * 100 + 50,
+                    opacity: 1
+                });
+            }
+            animateBang();
+            setTimeout(() => { canvas.style.opacity = 0; cancelAnimationFrame(bangAnimationId); }, 2500);
+        }
+
+        function animateBang() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.globalCompositeOperation = 'lighter'; // Efekt záře
+
+            particles.forEach((p, index) => {
+                p.x += p.velocity.x;
+                p.y += p.velocity.y;
+                p.life -= 1;
+                p.opacity = p.life / 100;
+                
+                if (p.life <= 0) particles.splice(index, 1);
+
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.radius * p.opacity, 0, Math.PI * 2);
+                ctx.fillStyle = p.color;
+                ctx.globalAlpha = p.opacity;
+                ctx.fill();
+            });
+
+            bangAnimationId = requestAnimationFrame(animateBang);
+        }
+
+        // --- SIMULACE DISPLEJEM (Psycho Walkman) ---
+        let lightSimInterval;
+        let isLightSimActive = false;
+        const overlay = $('light-sim-overlay');
+
+        function startLightSim(freq, name) {
+            // Zastavit zvukový syntezátor (aby nepletl)
+            if (isAudioPlaying) toggleAudio();
+
+            // Vypnout pokud už běží
+            if (isLightSimActive) {
+                stopLightSim();
+                return;
+            }
+
+            // Ochrana - zastavení na kliknutí kamkoliv
+            document.body.onclick = stopLightSim;
+            overlay.onclick = stopLightSim;
+
+            logEvent(`Spouštím fotostimulaci displejem: ${name} (${freq}Hz).`);
+            logEvent("Kliknutím na obrazovku zastavíte.");
+            
+            // Označit tlačítko
+            document.querySelectorAll('.btn-light-sim').forEach(b=>b.classList.remove('active'));
+            if(name==='Alpha') $('btn-alpha').classList.add('active');
+            if(name==='Beta') $('btn-beta').classList.add('active');
+            if(name==='Theta') $('btn-theta').classList.add('active');
+
+            const periodMs = (1 / freq) * 1000;
+            const halfPeriod = periodMs / 2;
+            isLightSimActive = true;
+            
+            overlay.style.opacity = 0;
+            overlay.style.pointerEvents = 'auto'; // Reagovat na klik
+
+            // Synchronizované zvukové klapání
+            const clickCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+            lightSimInterval = setInterval(() => {
+                // Zapnout bílou
+                overlay.style.opacity = 1;
+                document.body.style.backgroundColor = "white";
+                
+                // Krátký zvuk kliknutí
+                if(clickCtx) {
+                    const osc = clickCtx.createOscillator();
+                    osc.frequency.setValueAtTime(1000, clickCtx.currentTime);
+                    const g = clickCtx.createGain();
+                    g.gain.exponentialRampToValueAtTime(0.001, clickCtx.currentTime+0.01);
+                    osc.connect(g); g.connect(clickCtx.destination);
+                    osc.start(); osc.stop(clickCtx.currentTime+0.01);
+                }
+
+                // Po půl periodě vypnout
+                setTimeout(() => {
+                    overlay.style.opacity = 0;
+                    document.body.style.backgroundColor = "var(--bg-color)";
+                }, halfPeriod);
+
+            }, periodMs);
+        }
+
+        function stopLightSim() {
+            if (!isLightSimActive) return;
+            clearInterval(lightSimInterval);
+            isLightSimActive = false;
+            overlay.style.opacity = 0;
+            overlay.style.pointerEvents = 'none';
+            document.body.style.backgroundColor = "var(--bg-color)";
+            document.querySelectorAll('.btn-light-sim').forEach(b=>b.classList.remove('active'));
+            document.body.onclick = null; // Odstranit globální handler
+            logEvent("Fotostimulace zastavena.");
+        }
+
+        // --- BINÁRNÍ POZADÍ ---
+        const generateBinaryBg = () => {
+            const pattern = ["1", "0", "1", "0", "1", "1", "0", "0", "0", "1", "1", "0", "0", "0", "1"];
+            let binStr = "";
+            for(let i=0; i<800; i++) binStr += pattern[i % pattern.length] + " ";
+            $('binary-bg').innerText = binStr;
+        }
+        generateBinaryBg();
+        window.onresize = generateBinaryBg;
+
+    </script>
+</body>
+</html>

@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zijemjenjednou.cz - Oáza klidu a pochopení</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Montserrat', sans-serif;
+            color: #ffffff;
+            background-color: #050b14;
+            /* Zde je vložen vygenerovaný obrázek jako pozadí */
+            background-image: url('http://googleusercontent.com/image_generation_content/0');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            line-height: 1.6;
+        }
+
+        .overlay {
+            background-color: rgba(5, 11, 20, 0.85); /* Silnější ztmavení pozadí pro lepší čitelnost a kontrast */
+            min-height: 100vh;
+            width: 100%;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 50px;
+            background: rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: 600;
+            color: #ffd700; /* Zlatavá barva ranního svítání */
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .lang-switch button {
+            background: transparent;
+            border: 1px solid #ffd700;
+            color: #ffd700;
+            padding: 8px 15px;
+            cursor: pointer;
+            border-radius: 20px;
+            transition: all 0.3s ease;
+            font-family: 'Montserrat', sans-serif;
+        }
+
+        .lang-switch button:hover {
+            background: #ffd700;
+            color: #050b14;
+            font-weight: 600;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 60px 20px;
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 3.5em;
+            font-weight: 300;
+            margin-bottom: 10px;
+            color: #ffd700;
+            text-shadow: 0 0 20px rgba(255, 215, 0, 0.2);
+        }
+
+        h2 {
+            font-size: 2.2em;
+            font-weight: 300;
+            margin-top: 60px;
+            border-bottom: 1px solid rgba(255, 215, 0, 0.3);
+            padding-bottom: 15px;
+            color: #ffffff;
+        }
+
+        p {
+            font-size: 1.15em;
+            margin-bottom: 20px;
+            text-align: justify;
+            text-align-last: center;
+            color: #e2e8f0;
+        }
+
+        /* Odpočet */
+        .countdown {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin: 40px 0;
+            flex-wrap: wrap;
+        }
+
+        .time-box {
+            background: rgba(255, 215, 0, 0.05);
+            border: 1px solid rgba(255, 215, 0, 0.2);
+            border-radius: 15px;
+            padding: 20px 25px;
+            min-width: 90px;
+            backdrop-filter: blur(5px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        }
+
+        .time-box span {
+            display: block;
+            font-size: 3em;
+            font-weight: 600;
+            color: #ffd700;
+            line-height: 1;
+            margin-bottom: 5px;
+        }
+
+        .time-box p {
+            margin: 0;
+            font-size: 0.85em;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            text-align: center;
+            text-align-last: center;
+        }
+
+        /* Sekce Zahrada klidu */
+        .oasis-section {
+            background: linear-gradient(145deg, rgba(30, 41, 59, 0.4) 0%, rgba(15, 23, 42, 0.6) 100%);
+            border: 1px solid rgba(255, 215, 0, 0.15);
+            border-radius: 20px;
+            padding: 40px;
+            margin: 60px 0;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(10px);
+        }
+
+        .oasis-content {
+            display: flex;
+            align-items: center;
+            gap: 40px;
+            margin-top: 30px;
+            text-align: left;
+        }
+
+        .oasis-image {
+            width: 100%;
+            max-width: 350px;
+            border-radius: 15px;
+            box-shadow: 0 0 30px rgba(255, 215, 0, 0.2);
+            border: 1px solid rgba(255, 215, 0, 0.3);
+            object-fit: cover;
+        }
+
+        .oasis-text p {
+            text-align: left;
+            text-align-last: left;
+            font-size: 1.1em;
+            line-height: 1.8;
+            margin-bottom: 15px;
+        }
+
+        /* FAQ */
+        .faq-item {
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 15px;
+            margin-bottom: 25px;
+            padding: 25px;
+            text-align: left;
+            border-left: 4px solid #ffd700;
+            transition: transform 0.3s ease, background 0.3s ease;
+        }
+
+        .faq-item:hover {
+            transform: translateX(5px);
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .faq-item h3 {
+            margin-top: 0;
+            color: #ffd700;
+            font-weight: 600;
+            font-size: 1.3em;
+        }
+
+        .faq-item p {
+            text-align: left;
+            text-align-last: left;
+            margin-bottom: 0;
+        }
+
+        /* Formulář */
+        .newsletter {
+            margin-top: 40px;
+            background: rgba(0, 0, 0, 0.5);
+            padding: 40px;
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .newsletter-wrapper {
+            display: flex;
+            justify-content: center;
+            margin-top: 20px;
+        }
+
+        .newsletter input[type="email"] {
+            padding: 15px 25px;
+            width: 60%;
+            border: 1px solid rgba(255, 215, 0, 0.3);
+            background: rgba(255, 255, 255, 0.05);
+            color: #fff;
+            border-radius: 30px 0 0 30px;
+            outline: none;
+            font-family: 'Montserrat', sans-serif;
+            font-size: 1em;
+        }
+
+        .newsletter input[type="email"]::placeholder {
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        .newsletter button {
+            padding: 15px 35px;
+            background: #ffd700;
+            color: #050b14;
+            border: 1px solid #ffd700;
+            border-radius: 0 30px 30px 0;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 1em;
+            font-family: 'Montserrat', sans-serif;
+            transition: all 0.3s ease;
+        }
+
+        .newsletter button:hover {
+            background: #e6c200;
+            box-shadow: 0 0 15px rgba(255, 215, 0, 0.4);
+        }
+
+        .forum-placeholder {
+            margin-top: 60px;
+            padding: 40px;
+            border: 1px dashed rgba(255, 215, 0, 0.4);
+            background: rgba(255, 215, 0, 0.02);
+            border-radius: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .oasis-content {
+                flex-direction: column;
+                text-align: center;
+            }
+            .oasis-text p {
+                text-align: justify;
+                text-align-last: center;
+            }
+            .newsletter-wrapper {
+                flex-direction: column;
+            }
+            .newsletter input[type="email"], .newsletter button {
+                width: 100%;
+                border-radius: 30px;
+                margin-bottom: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="overlay">
+        <header>
+            <div class="logo">P biPo Heal</div>
+            <div class="lang-switch">
+                <button>Switch to English</button>
+            </div>
+        </header>
+
+        <div class="container">
+            <h1>Vítejte v oáze klidu</h1>
+            <p style="font-size: 1.3em; color: #ffd700; font-weight: 300;">Zjemňujeme špičky a propasti. Hledáme pochopení pro stavy naší mysli a učíme se s nimi žít.</p>
+
+            <div class="countdown" id="countdown">
+                <div class="time-box"><span id="days">30</span><p>Dní</p></div>
+                <div class="time-box"><span id="hours">00</span><p>Hodin</p></div>
+                <div class="time-box"><span id="minutes">00</span><p>Minut</p></div>
+                <div class="time-box"><span id="seconds">00</span><p>Sekund</p></div>
+            </div>
+            <p style="color: rgba(255, 255, 255, 0.7); font-size: 0.9em; text-transform: uppercase; letter-spacing: 2px;">do spuštění demoverze naší aplikace</p>
+
+            <!-- Nová sekce Zahrada a Oáza klidu -->
+            <div class="oasis-section">
+                <h2 style="margin-top: 0; border: none;">Zahrada vaší mysli</h2>
+                <div class="oasis-content">
+                    <img src="http://googleusercontent.com/image_generation_content/0" alt="Meditující postava ve vesmíru tvořící oázu klidu" class="oasis-image">
+                    <div class="oasis-text">
+                        <p>Představte si místo ve své mysli, kde utichne hluk okolního světa a zpomalí se čas. Virtuální zahradu, kam se můžete uchýlit ve chvíli, kdy cítíte, že váš vnitřní motor běží příliš rychle a vy ztrácíte kontrolu.</p>
+                        <p>Stejně tak je to bezpečný přístav pro chvíle, kdy padáte do propasti a docházejí vám síly. P biPo Heal vám pomáhá tuto oázu klidu najít a budovat. Je to prostor pro srovnání myšlenek, meditaci a smíření se sebou samým.</p>
+                    </div>
+                </div>
+            </div>
+
+            <h2>O smyslu života a bytí</h2>
+            <p>Život vnímám jako nejcennější dar, který se má naplno užívat v přítomnosti, a ne jen přežívat. Smyslem lidské existence je láska, kterou považuji za univerzální hodnotu, jež nás definuje a propojuje. Věřím, že naše role je v pomoci ostatním a v předávání inspirace budoucím generacím. Náš odkaz přetrvává v paměti lidí, kterých jsme se dotkli. Život chápu jako svobodu volby a cestu k sebepoznání, kde i ty nejhlubší krize a negativní zkušenosti slouží jako klíčové lekce pro osobní růst a nalezení skutečného vnitřního klidu.</p>
+
+            <h2>Můj příběh</h2>
+            <p>S bipolární poruchou se léčím od roku 2012, i když první setkání s ní proběhlo už na střední škole. Rok 2012 pro mě byl zlomový – ztratil jsem práci, ženu i přítelkyni. Odcestoval jsem do Thajska s cílem dokázat tátovi, že mám na to dělat filmařinu, ale utopil jsem tam kameru i veškerý natočený materiál. Nyní, ve svých 41 letech, jsem se rozhodl vzít veškeré své prožitky a znalosti této nemoci a vložit je do tohoto projektu. Chtěl jsem pochopit svou nemoc a vytvořit asistenta, který mi "oseká špičky a downhilly". Zjistil jsem, že to funguje mně, a proto chci nyní pomoci ostatním.</p>
+
+            <h2>Často kladené dotazy (FAQ)</h2>
+            
+            <div class="faq-item">
+                <h3>O čem ta aplikace vlastně je?</h3>
+                <p>Je to o pomoci lidem s pošramoceným duševním zdravím. Pomáháme najít cestu ke klidu, pochopení a porozumění. Učíme se, že každý stav je v pořádku a je zbytečné s ním bojovat. Manické stavy lze využít pro tvorbu a umění, depresivní stavy zase pro klid a odpočinek.</p>
+            </div>
+
+            <div class="faq-item">
+                <h3>Jak mi aplikace může pomoct v každodenním životě?</h3>
+                <p>Aplikace funguje jako ranní káva a mentální relax. Připraví vás na zkoušku či pohovor. P biPo Heal slouží jako deníček a asistent, který vás dokáže dostat do správného pracovního rozpoložení. V mánii vás dokáže přibrzdit, v depresi naopak povzbudit a "nakopnout" k akci.</p>
+            </div>
+
+            <div class="faq-item">
+                <h3>Jsou má data v bezpečí? Kam se ukládají?</h3>
+                <p>Absolutně. Veškeré informace se ukládají výhradně do vašeho mobilu a jen vy rozhodujete, co s nimi uděláte. V budoucnu plánujeme možnost sdílet anonymizovaná data nebo reflexe, abychom mohli aplikaci dále personifikovat, ale vždy to bude vaše svobodná volba.</p>
+            </div>
+
+            <div class="faq-item">
+                <h3>V čem se to liší od jiných aplikací?</h3>
+                <p>Zatímco jiné aplikace a testy (DNA, magnetická rezonance) slouží k pochopení nemoci tabulkově, naše aplikace pomáhá s konkrétním přítomným prožitkem. Je to váš parťák v kapse, který s vámi aktivně komunikuje a přináší přímou pomoc, ne jen záznam dat.</p>
+            </div>
+
+            <div class="newsletter">
+                <h2>Připojte se k nám</h2>
+                <p style="margin-bottom: 0;">Zanechte nám svůj e-mail a buďte u toho, až spustíme první testovací verze. Společně můžeme vytvořit něco, co opravdu pomáhá.</p>
+                <div class="newsletter-wrapper">
+                    <input type="email" placeholder="Váš e-mail pro novinky...">
+                    <button>Chci vědět víc</button>
+                </div>
+            </div>
+
+            <div class="forum-placeholder">
+                <h3 style="color: #ffd700; margin-top: 0;">Zde brzy najdete diskuzní fórum a chat</h3>
+                <p style="margin-bottom: 0;">Prostor pro sdílení příběhů těch, kterým P biPo Heal pomáhá, a místo pro vaše dotazy.</p>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        // Nastavení odpočtu (např. na 30 dní od teď)
+        var countDownDate = new Date();
+        countDownDate.setDate(countDownDate.getDate() + 30); // Zde můžete změnit počet dní
+        var countDownTime = countDownDate.getTime();
+
+        var x = setInterval(function() {
+            var now = new Date().getTime();
+            var distance = countDownTime - now;
+
+            var days = Math.floor(distance / (1000 * 60 * 60 * 24));
+            var hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            var minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+            var seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+            document.getElementById("days").innerHTML = days;
+            document.getElementById("hours").innerHTML = hours < 10 ? "0" + hours : hours;
+            document.getElementById("minutes").innerHTML = minutes < 10 ? "0" + minutes : minutes;
+            document.getElementById("seconds").innerHTML = seconds < 10 ? "0" + seconds : seconds;
+
+            if (distance < 0) {
+                clearInterval(x);
+                document.getElementById("countdown").innerHTML = "DEMOVERZE JE NYNÍ DOSTUPNÁ";
+            }
+        }, 1000);
+    </script>
+</body>
+</html>

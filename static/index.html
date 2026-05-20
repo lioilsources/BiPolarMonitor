@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Skládání s panem P v6.0</title>
+    <style>
+        :root { --gold: #d4af37; --bg: #0a0a0a; --card: #1c1c1e; --text: #f2f2f7; }
+        body { background: var(--bg); color: var(--text); font-family: -apple-system, sans-serif; padding: 10px; margin: 0; }
+        header { text-align: center; padding: 10px; border-bottom: 2px solid var(--gold); }
+        header h1 { margin: 0; color: var(--gold); font-size: 1.2rem; letter-spacing: 2px; }
+        .card { background: var(--card); border-radius: 15px; padding: 15px; margin-top: 10px; border: 1px solid #333; }
+        h2 { font-size: 0.75rem; color: var(--gold); text-transform: uppercase; margin-bottom: 8px; }
+        textarea, input, select { width: 100%; background: #2c2c2e; color: white; border: 1px solid #444; padding: 10px; margin: 5px 0; border-radius: 8px; font-size: 16px; box-sizing: border-box; }
+        .btn { background: var(--gold); color: black; border: none; padding: 12px; font-weight: bold; border-radius: 8px; cursor: pointer; margin: 4px 0; width: 100%; font-size: 0.9rem; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+        .piano-container { overflow-x: auto; background: #000; border-radius: 8px; padding: 10px 5px; }
+        .piano-row { display: flex; width: max-content; }
+        .key { width: 40px; height: 110px; background: white; border: 1px solid #999; flex-shrink: 0; border-radius: 0 0 5px 5px; cursor: pointer; display: flex; align-items: flex-end; justify-content: center; color: #555; font-size: 0.6rem; font-weight: bold; padding-bottom: 5px; }
+        .key.black { background: #222; color: white; height: 70px; width: 28px; margin-left: -14px; margin-right: -14px; z-index: 2; }
+        .active-mode { border: 2px solid #27ae60; }
+    </style>
+</head>
+<body>
+
+<header><h1>SKLÁDÁNÍ <span>s panem P</span></h1></header>
+
+<div class="card">
+    <h2>1. Text Básně</h2>
+    <textarea id="lyrics" rows="2" placeholder="Zde napište svou báseň..."></textarea>
+    <div class="grid">
+        <button class="btn" style="background:#2980b9; color:white;" onclick="textToNotes()">✨ TEXT NA NOTY</button>
+        <button class="btn" style="background:#8e44ad; color:white;" onclick="notesToText()">✍️ NOTY NA TEXT</button>
+    </div>
+</div>
+
+<div class="card">
+    <h2>2. Hudební Studio (3 Oktávy + A.I.)</h2>
+    <div class="piano-container">
+        <div class="piano-row" id="piano"></div>
+    </div>
+    <input type="text" id="notation" placeholder="C3,2 G3,4 ...">
+    <div class="grid">
+        <button class="btn" style="background:#444; color:white;" onclick="aiAssist()">🪄 A.I. DOPLNIT</button>
+        <button class="btn" style="background:#c0392b; color:white;" onclick="clearAll()">🗑 SMAZAT</button>
+    </div>
+</div>
+
+<div class="card">
+    <h2>3. Výkon & Jazyky</h2>
+    <select id="lang">
+        <option value="ja-JP">Japonština 🇯🇵</option>
+        <option value="vi-VN">Vietnamština 🇻🇳</option>
+        <option value="zh-CN">Čínština 🇨🇳</option>
+    </select>
+    <div class="grid">
+        <button class="btn" style="background:#555; color:white;" onclick="playPart('music')">🎹 JEN TÓNY</button>
+        <button class="btn" style="background:#555; color:white;" onclick="playPart('drums')">🥁 JEN BICÍ</button>
+    </div>
+    <button class="btn" style="background:#27ae60; color:white; font-size:1.1rem; height:50px;" onclick="playFull()">▶ PŘEHRÁT VŠE (SYNC)</button>
+</div>
+
+<script>
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    const baseFreqs = {"C":130.81, "C#":138.59, "D":146.83, "D#":155.56, "E":164.81, "F":174.61, "F#":185.00, "G":196.00, "G#":207.65, "A":220.00, "A#":233.08, "B":246.94};
+    const masterDict = { "C": "klid", "D": "cesta", "E": "světlo", "F": "stín", "G": "hora", "A": "květ", "B": "noc" };
+
+    // Piano
+    const pRow = document.getElementById('piano');
+    [2,3,4].forEach(oct => {
+        Object.keys(baseFreqs).forEach(key => {
+            const d = document.createElement('div');
+            d.className = `key ${key.includes('#') ? 'black' : ''}`;
+            d.innerText = key+oct;
+            d.onclick = () => { playTone(key+oct, 0, 0.4); addNote(key+oct); };
+            pRow.appendChild(d);
+        });
+    });
+
+    function addNote(n) { const i = document.getElementById('notation'); i.value += (i.value ? " " : "") + n + ",2"; }
+
+    function playTone(name, start, dur, type='triangle') {
+        let note = name.replace(/[0-9]/g, '');
+        let oct = parseInt(name.replace(/\D/g, '')) || 3;
+        let freq = baseFreqs[note] * Math.pow(2, oct - 2);
+        const o = audioCtx.createOscillator(); const g = audioCtx.createGain();
+        o.type = type; o.frequency.value = freq; o.connect(g); g.connect(audioCtx.destination);
+        g.gain.setValueAtTime(0.2, audioCtx.currentTime + start);
+        g.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + start + dur);
+        o.start(audioCtx.currentTime + start); o.stop(audioCtx.currentTime + start + dur);
+    }
+
+    function playDrum(start) {
+        const o = audioCtx.createOscillator(); const g = audioCtx.createGain();
+        o.frequency.setValueAtTime(100, audioCtx.currentTime + start);
+        o.frequency.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + start + 0.1);
+        o.connect(g); g.connect(audioCtx.destination);
+        g.gain.setValueAtTime(0.4, audioCtx.currentTime + start);
+        g.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + start + 0.1);
+        o.start(audioCtx.currentTime + start); o.stop(audioCtx.currentTime + start + 0.1);
+    }
+
+    function textToNotes() {
+        const words = document.getElementById('lyrics').value.split(/\s+/).filter(w=>w.length>0);
+        const scale = ["C3", "E3", "G3", "A3"];
+        document.getElementById('notation').value = words.map((w,i)=> scale[i%scale.length]+","+(w.length>4?4:2)).join(' ');
+    }
+
+    function notesToText() {
+        const notes = document.getElementById('notation').value.split(' ');
+        document.getElementById('lyrics').value = notes.map(n => masterDict[n[0]] || "klid").join(' ');
+    }
+
+    function aiAssist() {
+        const styles = [" G3,4 A3,4 C4,8", " E3,2 D3,2 C3,4", " B2,4 G2,4 A2,8"];
+        document.getElementById('notation').value += " " + styles[Math.floor(Math.random()*styles.length)];
+    }
+
+    function playPart(mode) { run(mode === 'music', false, mode === 'drums'); }
+    function playFull() { run(true, true, true); }
+
+    function run(music, voice, drums) {
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+        const words = document.getElementById('lyrics').value.split(/\s+/);
+        const notes = document.getElementById('notation').value.split(' ');
+        const lang = document.getElementById('lang').value;
+        let time = 0;
+
+        notes.forEach((nStr, i) => {
+            if(nStr.includes(',')) {
+                let [n, d] = nStr.split(',');
+                let dur = parseInt(d) * 0.3;
+                if(music) playTone(n, time, dur);
+                if(drums && i % 2 === 0) playDrum(time);
+                if(voice && words[i]) {
+                    setTimeout(() => {
+                        const m = new SpeechSynthesisUtterance(words[i]);
+                        m.lang = lang; m.rate = 0.8; window.speechSynthesis.speak(m);
+                    }, time * 1000);
+                }
+                time += dur;
+            }
+        });
+    }
+
+    function clearAll() { document.getElementById('notation').value = ""; document.getElementById('lyrics').value = ""; }
+</script>
+</body>
+</html>
