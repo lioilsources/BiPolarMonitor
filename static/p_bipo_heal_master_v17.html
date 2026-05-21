@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>P biPo Heal v17.0 - Master Core</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --gold: #d4af37;
+            --bg: #070708;
+            --card: #141416;
+            --text: #f1f2f6;
+            --accent: #00e5ff;
+            --love: #ff4757;
+            --peace: #2ed573;
+            --warning: #ffa502;
+            --danger: #ff3838;
+        }
+        body {
+            background-color: var(--bg);
+            color: var(--text);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            margin: 0;
+            padding: 10px;
+            padding-bottom: 60px;
+            box-sizing: border-box;
+        }
+        header {
+            text-align: center;
+            padding: 15px 0;
+            border-bottom: 2px solid var(--gold);
+            margin-bottom: 15px;
+        }
+        header h1 {
+            margin: 0;
+            font-size: 1.4rem;
+            color: var(--gold);
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+        header p {
+            margin: 5px 0 0 0;
+            font-size: 0.75rem;
+            color: #8e8e93;
+            letter-spacing: 1px;
+        }
+        .card {
+            background: var(--card);
+            border: 1px solid #2c2c2e;
+            border-radius: 16px;
+            padding: 16px;
+            margin-bottom: 15px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.6);
+        }
+        h2 {
+            font-size: 0.85rem;
+            color: var(--gold);
+            text-transform: uppercase;
+            margin-top: 0;
+            margin-bottom: 12px;
+            letter-spacing: 1px;
+            border-bottom: 1px solid #2c2c2e;
+            padding-bottom: 6px;
+        }
+        
+        /* 1. SEKVENCE VELKÉHO TŘESKU */
+        .timeline {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .timeline-item {
+            background: #1c1c1e;
+            padding: 12px;
+            border-radius: 10px;
+            border-left: 4px solid #444;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 0.9rem;
+            transition: all 0.2s ease;
+        }
+        .timeline-item.active {
+            border-left-color: var(--accent);
+            background: rgba(0, 229, 255, 0.08);
+        }
+        .timeline-item.final {
+            border-left-color: var(--peace);
+            background: rgba(46, 213, 115, 0.08);
+        }
+        .time-tag {
+            font-weight: bold;
+            color: var(--gold);
+            font-size: 0.8rem;
+        }
+        .time-text {
+            flex-grow: 1;
+            margin-left: 12px;
+            font-weight: 500;
+        }
+
+        /* RADAR A SLIDERY */
+        .chart-container {
+            position: relative;
+            height: 200px;
+            width: 100%;
+            margin-bottom: 15px;
+        }
+        .slider-stack {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .slider-unit {
+            display: flex;
+            flex-direction: column;
+        }
+        .slider-unit label {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.8rem;
+            margin-bottom: 3px;
+            color: #aeaeb2;
+        }
+        .slider-unit label span.num {
+            color: var(--gold);
+            font-weight: bold;
+        }
+        input[type=range] {
+            -webkit-appearance: none;
+            width: 100%;
+            background: #2c2c2e;
+            height: 4px;
+            border-radius: 2px;
+        }
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            height: 18px;
+            width: 18px;
+            border-radius: 50%;
+            background: var(--gold);
+            cursor: pointer;
+        }
+
+        /* KOSTKA / SEKCÍ */
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+        .box {
+            background: #1c1c1e;
+            border: 1px solid #2c2c2e;
+            border-radius: 12px;
+            padding: 12px;
+            text-align: center;
+            font-size: 0.85rem;
+        }
+        .box i {
+            display: block;
+            font-size: 1.5rem;
+            margin-bottom: 6px;
+        }
+        
+        /* DINAMICKÝ DIAGNOSTICKÝ PANEL */
+        .alert-box {
+            background: rgba(255, 56, 56, 0.1);
+            border: 1px solid var(--danger);
+            border-radius: 10px;
+            padding: 12px;
+            font-size: 0.85rem;
+            line-height: 1.4;
+            display: none;
+        }
+        
+        .guide-box {
+            background: rgba(0, 229, 255, 0.05);
+            border-left: 4px solid var(--accent);
+            padding: 10px;
+            font-size: 0.85rem;
+            margin-top: 8px;
+            border-radius: 0 8px 8px 0;
+        }
+
+        /* BLADE RUNNER PROTOKOL */
+        .br-scanner {
+            background: #000;
+            border: 1px solid #ff3838;
+            border-radius: 8px;
+            padding: 10px;
+            text-align: center;
+            font-family: monospace;
+            color: #ff3838;
+            font-size: 0.8rem;
+        }
+        .pulse-line {
+            height: 2px;
+            background: #ff3838;
+            box-shadow: 0 0 8px #ff3838;
+            animation: scanM 2s infinite linear;
+            position: relative;
+        }
+        @keyframes scanM {
+            0% { top: 0px; }
+            50% { top: 40px; }
+            100% { top: 0px; }
+        }
+
+        .btn-action {
+            background: linear-gradient(145deg, #d4af37, #aa8c2c);
+            color: black;
+            border: none;
+            padding: 14px;
+            font-weight: bold;
+            border-radius: 25px;
+            width: 100%;
+            font-size: 0.95rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-top: 10px;
+            cursor: pointer;
+            box-shadow: 0 4px 10px rgba(212,175,55,0.3);
+        }
+        .btn-action:active {
+            transform: scale(0.98);
+        }
+        .footer-text {
+            text-align: center;
+            font-size: 0.7rem;
+            color: #636366;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>Žijem jen jednou ?!</h1>
+        <p>P biPo Heal v17.0 • Core Engine</p>
+    </header>
+
+    <!-- CYKLUS CESTY -->
+    <div class="card">
+        <h2>1. Cesta Sebe Poznání (Cyklus)</h2>
+        <div class="timeline">
+            <div class="timeline-item active" id="step-0">
+                <span class="time-tag">START</span>
+                <span class="time-text">VELKÝ TŘESK (Zrod života / BUM)</span>
+            </div>
+            <div class="timeline-item" id="step-1">
+                <span class="time-tag">KROK 1</span>
+                <span class="time-text">UVĚDOMĚNÍ & SAMOSTATNÉ MYŠLENÍ</span>
+            </div>
+            <div class="timeline-item" id="step-2">
+                <span class="time-tag">KROK 2</span>
+                <span class="time-text">POCHOPENÍ STAVU (Analýza dat)</span>
+            </div>
+            <div class="timeline-item" id="step-3">
+                <span class="time-tag">KROK 3</span>
+                <span class="time-text">PŘIJETÍ & ODPUŠTĚNÍ (Starost o sebe)</span>
+            </div>
+            <div class="timeline-item final" id="step-4">
+                <span class="time-tag">CÍL</span>
+                <span class="time-text">NAPROSTÝ KLID (Ráj / Obnova buněk)</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- CHEMICKÁ POLÉVKA VE17 -->
+    <div class="card">
+        <h2>2. Chemická analýza dat (Verze 17)</h2>
+        <div class="chart-container">
+            <canvas id="radarVe17"></canvas>
+        </div>
+        
+        <div class="slider-stack">
+            <div class="slider-unit">
+                <label>Dopamin (Motivace) <span class="num" id="lblD">50%</span></label>
+                <input type="range" id="rngD" min="0" max="100" value="50" oninput="refreshApp()">
+            </div>
+            <div class="slider-unit">
+                <label>Serotonin (Spokojenost) <span class="num" id="lblS">50%</span></label>
+                <input type="range" id="rngS" min="0" max="100" value="50" oninput="refreshApp()">
+            </div>
+            <div class="slider-unit">
+                <label>Oxytocin (Důvěra / Rodina) <span class="num" id="lblO">60%</span></label>
+                <input type="range" id="rngO" min="0" max="100" value="60" oninput="refreshApp()">
+            </div>
+            <div class="slider-unit">
+                <label>Kortizol (Stres / Hrozba) <span class="num" id="lblC">30%</span></label>
+                <input type="range" id="rngC" min="0" max="100" value="30" oninput="refreshApp()">
+            </div>
+        </div>
+    </div>
+
+    <!-- VAROVNÝ SYSTÉM -->
+    <div class="card id-alert" id="dangerZone" style="display: none;">
+        <strong style="color:var(--danger)">⚠️ KRIZE: Nedostatek dat & Nedorozumění</strong>
+        <div style="margin-top:5px; font-size:0.8rem; color:#d1d1d6;">
+            Řetězec hrozby: Vztek ➔ Beznaděj ➔ Utrpení ➔ Strach ➔ Zánik.<br>
+            <strong>Akce:</strong> Zastav kódování, aktivuj dechový vzorec.
+        </div>
+    </div>
+
+    <!-- BIO-HACKING PRŮVODCE -->
+    <div class="card">
+        <h2>3. Bio-Hacking & Navigační mapy</h2>
+        <div id="dynamicGuides"></div>
+    </div>
+
+    <!-- NOVÝ TÓN & SMYSLY -->
+    <div class="card">
+        <h2>4. Multisenzorické splynutí</h2>
+        <div class="grid-2">
+            <div class="box" style="border-color: var(--accent);" onclick="alert('Spouštím modulaci zvuku: Synchronizace tepu, krve a dechu.')">
+                <span style="font-size:1.3rem">🎵</span>
+                <strong>Nový Tón</strong><br><small>Všechna spektra</small>
+            </div>
+            <div class="box" style="border-color: var(--love);" onclick="alert('Doporučení: Odlož techniku. Pevné objetí ženy/dětí > 20 vteřin. Prožij moment.')">
+                <span style="font-size:1.3rem">❤️</span>
+                <strong>Rodina / Jin Jang</strong><br><small>Předání pocitů</small>
+            </div>
+            <div class="box" onclick="alert('Hádanky, vtipy, metafory. Rozvíjení fantazie a hry s dětmi.')">
+                <span style="font-size:1.3rem">🧩</span>
+                <strong>Dětské Hry</strong><br><small>Zpětná kontrola</small>
+            </div>
+            <div class="box" style="border-color: var(--gold);">
+                <span style="font-size:1.3rem">☀️</span>
+                <strong>Světlo přes kůži</strong><br><small>2. Krok stabilizace</small>
+            </div>
+        </div>
+    </div>
+
+    <!-- BLADE RUNNER BASELINE -->
+    <div class="card">
+        <h2>5. Voight-Kampff / Forrest Gump Baseline</h2>
+        <div class="br-scanner">
+            <div class="pulse-line"></div>
+            <div style="margin-top:10px;" id="brStatus">PROTOKOL AKTIVNÍ: Gray-scale oční analýza</div>
+        </div>
+        <button class="btn-action" onclick="runVKTest()">Spustit Baseline Test</button>
+    </div>
+
+    <div class="footer-text">
+        Hranice neexistují!! Jsou ale třeba. • © Žijem jen jednou ?!
+    </div>
+
+    <script>
+        // Inicializace grafu Verze 17
+        const ctx = document.getElementById('radarVe17').getContext('2d');
+        const chartVe17 = new Chart(ctx, {
+            type: 'radar',
+            data: {
+                labels: ['Dopamin', 'Serotonin', 'Oxytocin', 'Kortizol'],
+                datasets: [{
+                    data: [50, 50, 60, 30],
+                    backgroundColor: 'rgba(212, 175, 55, 0.15)',
+                    borderColor: 'rgba(212, 175, 55, 1)',
+                    pointBackgroundColor: 'rgba(0, 229, 255, 1)',
+                    borderWidth: 1.5,
+                    pointRadius: 3
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    r: {
+                        grid: { color: '#2c2c2e' },
+                        angleLines: { color: '#2c2c2e' },
+                        ticks: { display: false },
+                        pointLabels: { color: '#aeaeb2', font: { size: 11 } },
+                        suggestedMin: 0, suggestedMax: 100
+                    }
+                },
+                plugins: { legend: { display: false } }
+            }
+        });
+
+        function refreshApp() {
+            const d = parseInt(document.getElementById('rngD').value);
+            const s = parseInt(document.getElementById('rngS').value);
+            const o = parseInt(document.getElementById('rngO').value);
+            const c = parseInt(document.getElementById('rngC').value);
+
+            document.getElementById('lblD').innerText = d + '%';
+            document.getElementById('lblS').innerText = s + '%';
+            document.getElementById('lblO').innerText = o + '%';
+            document.getElementById('lblC').innerText = c + '%';
+
+            chartVe17.data.datasets[0].data = [d, s, o, c];
+            chartVe17.update();
+
+            // Průvodce a krizové stavy podle poznámek
+            const dangerZone = document.getElementById('dangerZone');
+            const guides = document.getElementById('dynamicGuides');
+            guides.innerHTML = '';
+
+            // Hrozba / Nedostatek dat
+            if (c > 70) {
+                dangerZone.style.display = 'block';
+                document.querySelectorAll('.timeline-item').forEach(el => el.classList.remove('active'));
+                document.getElementById('step-0').classList.add('active'); // Návrat na začátek / velký třesk
+            } else {
+                dangerZone.style.display = 'none';
+                // Plynulá simulace postupu cesty
+                document.querySelectorAll('.timeline-item').forEach(el => el.classList.remove('active'));
+                if (s > 60 && o > 60 && c < 40) {
+                    document.getElementById('step-4').classList.add('active');
+                } else if (s > 40) {
+                    document.getElementById('step-2').classList.add('active');
+                } else {
+                    document.getElementById('step-1').classList.add('active');
+                }
+            }
+
+            // Dynamické rady z papíru
+            if (d < 40) {
+                guides.innerHTML += `<div class="guide-box"><strong>Chybí Dopamin (Tah na branku):</strong> Zaměř se na mikro-výhry. Vyzkoušej studenou sprchu pro okamžitý šokový vzestup. Jídlo: banány, mandle.</div>`;
+            }
+            if (s < 40) {
+                guides.innerHTML += `<div class="guide-box"><strong>Nízký Serotonin (Hrozba propadu):</strong> Vyjdi na denní světlo. Naplánuj si běh v lese. Večer aplikuj radu od Zdeňka (71 let): klid, meditace a reiki. Vyhni se dálnicím stresu v těle.</div>`;
+            }
+            if (o < 50) {
+                guides.innerHTML += `<div class="guide-box"><strong>Nízký Oxytocin (Odpojení):</strong> Spusť přenos pocitů hudbou nebo slovem. Maximalizuj prožitek přítomného momentu s dětmi a ženou.</div>`;
+            }
+            if (guides.innerHTML === '') {
+                guides.innerHTML = `<div class="guide-box" style="border-left-color:var(--peace)"><strong>Systém v rovnováze (Stav γ):</strong> Tělo i mysl jsou v harmonii. Vznik a obnova buněk probíhá ideálně. Skvělý čas na klidnou tvorbu.</div>`;
+            }
+        }
+
+        function runVKTest() {
+            const status = document.getElementById('brStatus');
+            status.innerText = "TEST ZAHÁJEN: Sleduji reakci zornice na emoce...";
+            setTimeout(() => {
+                status.innerText = "ANALÝZA: Pochop emoce jako ve Forrest Gumpovi...";
+                setTimeout(() => {
+                    status.innerText = "VÝSLEDEK: Emoční inteligence kalibrována. Doporučen stav γ (Klid).";
+                }, 2000);
+            }, 2000);
+        }
+
+        // Úvodní spuštění
+        refreshApp();
+    </script>
+</body>
+</html>

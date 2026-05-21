@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>P biPo Heal - Žijem jen jednou ?!</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
+        body {
+            background-color: #0a0a0a;
+            color: #e0e0e0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            overflow: hidden;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        .app-title {
+            font-size: 24px;
+            font-weight: 300;
+            letter-spacing: 2px;
+            color: #ffffff;
+            margin-bottom: 8px;
+        }
+        .company {
+            font-size: 14px;
+            color: #00e5ff;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .grid-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            width: 90%;
+            max-width: 350px;
+        }
+        .state-btn {
+            background-color: #1a1a1a;
+            border: 1px solid #333;
+            border-radius: 20px;
+            padding: 30px 0;
+            font-size: 36px;
+            color: #555;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .state-btn span {
+            font-size: 12px;
+            margin-top: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            opacity: 0.7;
+        }
+        /* Interaktivní stavy */
+        .state-btn:hover {
+            transform: translateY(-2px);
+        }
+        #btn-alpha.active { color: #ff3d00; border-color: #ff3d00; text-shadow: 0 0 15px rgba(255,61,0,0.5); }
+        #btn-beta.active { color: #ff9100; border-color: #ff9100; text-shadow: 0 0 15px rgba(255,145,0,0.5); }
+        #btn-gamma.active { color: #00e5ff; border-color: #00e5ff; text-shadow: 0 0 15px rgba(0,229,255,0.5); }
+        #btn-delta.active { color: #2979ff; border-color: #2979ff; text-shadow: 0 0 15px rgba(41,121,255,0.5); }
+
+        .audio-trigger {
+            margin-top: 50px;
+            background: linear-gradient(145deg, #1e1e1e, #121212);
+            border: none;
+            border-radius: 50px;
+            padding: 15px 40px;
+            color: #fff;
+            font-size: 16px;
+            letter-spacing: 2px;
+            box-shadow:  5px 5px 10px #040404, -5px -5px 10px #101010;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .audio-trigger:active {
+            box-shadow: inset 5px 5px 10px #040404, inset -5px -5px 10px #101010;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <div class="app-title">P biPo Heal</div>
+        <div class="company">Žijem jen jednou ?!</div>
+    </div>
+
+    <div class="grid-container">
+        <button class="state-btn" id="btn-alpha" onclick="selectState('alpha')">
+            α <span>Mánie</span>
+        </button>
+        <button class="state-btn" id="btn-beta" onclick="selectState('beta')">
+            β <span>Hypománie</span>
+        </button>
+        <button class="state-btn" id="btn-gamma" onclick="selectState('gamma')">
+            γ <span>Stabilita</span>
+        </button>
+        <button class="state-btn" id="btn-delta" onclick="selectState('delta')">
+            δ <span>Deprese</span>
+        </button>
+    </div>
+
+    <button class="audio-trigger" onclick="alert('Zahajuji psychoakustickou modulaci...')">AUDIO TERAPIE</button>
+
+    <script>
+        function selectState(state) {
+            // Reset všech tlačítek
+            document.querySelectorAll('.state-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            // Aktivace vybraného
+            document.getElementById('btn-' + state).classList.add('active');
+            
+            // Tady by pak proběhl výpočet naší hormonální rovnice!
+            console.log("Aktivován stav: " + state);
+        }
+    </script>
+
+</body>
+</html>

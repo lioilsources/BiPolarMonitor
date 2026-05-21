@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Žijem jen jednou ?! | P biPo Heal</title>
+    <style>
+        :root { --gold: #d4af37; --bg: #050505; --text: #f2f2f7; --accent: #00e5ff; }
+        body { background: var(--bg); color: var(--text); font-family: -apple-system, sans-serif; margin: 0; padding: 0; text-align: center; }
+        header { padding: 10vh 20px; background: linear-gradient(180deg, #111 0%, #050505 100%); border-bottom: 2px solid var(--gold); }
+        h1 { font-size: 3rem; color: var(--gold); margin: 0; letter-spacing: 2px; }
+        .subtitle { font-size: 1.2rem; color: var(--accent); margin-top: 10px; text-transform: uppercase; }
+        .mission { max-width: 600px; margin: 30px auto; font-size: 1.1rem; line-height: 1.6; color: #aaa; }
+        
+        /* Odpočítávání */
+        .countdown { display: flex; justify-content: center; gap: 20px; margin: 40px 0; }
+        .time-box { background: #1c1c1e; border: 1px solid #333; border-radius: 10px; padding: 20px; min-width: 80px; }
+        .time-box span { display: block; font-size: 2.5rem; font-weight: bold; color: var(--gold); }
+        .time-box small { font-size: 0.8rem; color: #888; text-transform: uppercase; }
+
+        /* Roadmapa - Verze */
+        .roadmap { padding: 50px 20px; max-width: 1000px; margin: 0 auto; display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; }
+        .card { background: #111; border: 1px solid #333; border-radius: 15px; padding: 20px; text-align: left; position: relative; overflow: hidden; }
+        .card.active { border-color: var(--accent); box-shadow: 0 0 15px rgba(0, 229, 255, 0.2); }
+        .card h3 { margin-top: 0; color: var(--gold); }
+        .card.future { filter: blur(4px); transition: filter 0.5s; cursor: pointer; user-select: none; }
+        .card.future:hover { filter: blur(2px); }
+        .lock-icon { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 3rem; color: rgba(255,255,255,0.8); z-index: 10; display: none; }
+        .card.future .lock-icon { display: block; }
+
+        .btn { background: var(--gold); color: black; padding: 15px 40px; text-decoration: none; font-weight: bold; border-radius: 30px; font-size: 1.2rem; display: inline-block; margin-bottom: 50px; }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>Žijem jen jednou ?!</h1>
+        <div class="subtitle">Platforma pro neuro-stabilitu a bio-hacking</div>
+        <div class="mission">
+            Neděláme tabulky pro doktory. Tvoříme nástroj pro lidi. P biPo Heal analyzuje vaši chemickou polévku a dává vám okamžité multisenzorické záchranné brzdy, když ztrácíte kontrolu.
+        </div>
+        
+        <h2>Do spuštění Verze 4.4 zbývá:</h2>
+        <div class="countdown" id="timer">
+            <div class="time-box"><span id="days">00</span><small>Dní</small></div>
+            <div class="time-box"><span id="hours">00</span><small>Hodin</small></div>
+            <div class="time-box"><span id="mins">00</span><small>Minut</small></div>
+        </div>
+        <a href="#roadmap" class="btn">Objevte naši vizi</a>
+    </header>
+
+    <h2 style="margin-top: 50px;">Vývojová Roadmapa (Náskok 1 rok)</h2>
+    <div class="roadmap" id="roadmap">
+        <div class="card active">
+            <h3>Verze 4.4 (Záchranný kruh)</h3>
+            <p>Jádro aplikace. Sledování chemie pomocí řecké abecedy, noční režim a základní protokol ukotvení.</p>
+            <div style="color: var(--accent); font-weight: bold;">Brzy dostupné</div>
+        </div>
+
+        <div class="card future">
+            <div class="lock-icon">🔒</div>
+            <h3>Verze 5.0 (Psychoakustika)</h3>
+            <p>Generování 90Hz uzemňujících hlasů a frekvenčních vzorců pro stabilizaci z mánie.</p>
+        </div>
+
+        <div class="card future">
+            <div class="lock-icon">🔒</div>
+            <h3>Verze 6.0 (Skládání s panem P)</h3>
+            <p>Převod emocí na noty. A.I. asistent a interaktivní hudební pavučina pro tvorbu harmonie.</p>
+        </div>
+
+        <div class="card future">
+            <div class="lock-icon">🔒</div>
+            <h3>Verze 7.0 (VR Sync)</h3>
+            <p>Napojení na systémy virtuální reality. Vizualizace vlastní mysli v kyberprostoru.</p>
+        </div>
+    </div>
+
+    <script>
+        // Nastavení data spuštění (např. za 14 dní)
+        const countDownDate = new Date().getTime() + (14 * 24 * 60 * 60 * 1000);
+
+        const x = setInterval(function() {
+            const now = new Date().getTime();
+            const distance = countDownDate - now;
+
+            document.getElementById("days").innerHTML = Math.floor(distance / (1000 * 60 * 60 * 24));
+            document.getElementById("hours").innerHTML = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            document.getElementById("mins").innerHTML = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+
+            if (distance < 0) {
+                clearInterval(x);
+                document.getElementById("timer").innerHTML = "<div style='color: var(--accent); font-size: 2rem;'>VERZE 4.4 JE ONLINE</div>";
+            }
+        }, 1000);
+    </script>
+</body>
+</html>

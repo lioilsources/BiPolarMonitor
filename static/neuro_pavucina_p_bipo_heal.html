@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Neuro Pavučina - P biPo Heal</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root { --gold: #d4af37; --bg: #0a0a0a; --card: #1c1c1e; --text: #f2f2f7; --accent: #00e5ff; --alert: #ff3d00; }
+        body { 
+            background: var(--bg); 
+            color: var(--text); 
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; 
+            padding: 15px; 
+            margin: 0; 
+            padding-bottom: 50px;
+        }
+        header { text-align: center; padding: 10px 0 20px 0; border-bottom: 1px solid #333; margin-bottom: 20px; }
+        header h1 { margin: 0; color: var(--gold); font-size: 1.5rem; letter-spacing: 2px; }
+        header p { margin: 5px 0 0 0; font-size: 0.8rem; color: #888; text-transform: uppercase; }
+        
+        .card { 
+            background: var(--card); 
+            border-radius: 15px; 
+            padding: 20px; 
+            margin-bottom: 20px; 
+            border: 1px solid #333; 
+            box-shadow: 0 8px 16px rgba(0,0,0,0.4);
+        }
+        h2 { font-size: 1rem; color: var(--accent); text-transform: uppercase; margin-top: 0; margin-bottom: 15px; letter-spacing: 1px; }
+        
+        .chart-container { position: relative; height: 300px; width: 100%; display: flex; justify-content: center; }
+        
+        .sliders { display: flex; flex-direction: column; gap: 15px; margin-top: 10px; }
+        .slider-group { display: flex; flex-direction: column; }
+        .slider-group label { display: flex; justify-content: space-between; font-size: 0.9rem; margin-bottom: 5px; font-weight: 500; }
+        .slider-group span.val { color: var(--gold); font-weight: bold; }
+        
+        input[type=range] {
+            -webkit-appearance: none;
+            width: 100%;
+            background: transparent;
+        }
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            height: 20px;
+            width: 20px;
+            border-radius: 50%;
+            background: var(--gold);
+            cursor: pointer;
+            margin-top: -8px;
+            box-shadow: 0 0 10px rgba(212, 175, 55, 0.5);
+        }
+        input[type=range]::-webkit-slider-runnable-track {
+            width: 100%;
+            height: 4px;
+            cursor: pointer;
+            background: #444;
+            border-radius: 2px;
+        }
+        
+        .advice-section { display: flex; flex-direction: column; gap: 10px; }
+        .advice-item { 
+            background: rgba(41, 128, 185, 0.1); 
+            border-left: 4px solid #2980b9; 
+            padding: 12px 15px; 
+            border-radius: 0 8px 8px 0; 
+            font-size: 0.9rem;
+            line-height: 1.4;
+            display: none;
+            animation: fadeIn 0.3s ease-in-out;
+        }
+        .advice-item.alert { background: rgba(255, 61, 0, 0.1); border-left-color: var(--alert); }
+        .advice-item.success { background: rgba(39, 174, 96, 0.1); border-left-color: #27ae60; }
+        .advice-item.calm { background: rgba(142, 68, 173, 0.1); border-left-color: #8e44ad; }
+        .advice-item.oxy { background: rgba(255, 107, 129, 0.1); border-left-color: #ff6b81; }
+
+        .advice-item strong { display: block; margin-bottom: 5px; font-size: 1rem; }
+        .advice-item ul { margin: 5px 0 0 0; padding-left: 20px; }
+        .advice-item li { margin-bottom: 4px; }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        
+        .btn { background: var(--gold); color: black; border: none; padding: 15px; font-weight: bold; border-radius: 8px; cursor: pointer; width: 100%; font-size: 1rem; text-transform: uppercase; margin-top: 10px; box-shadow: 0 4px 10px rgba(212, 175, 55, 0.3); }
+        .btn:active { transform: scale(0.98); }
+
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>NEURO PAVUČINA</h1>
+        <p>P biPo Heal - Žijem jen jednou ?!</p>
+    </header>
+
+    <div class="card">
+        <h2>Aktuální rozložení sítě</h2>
+        <div class="chart-container">
+            <canvas id="neuroChart"></canvas>
+        </div>
+    </div>
+
+    <div class="card">
+        <h2>Modulace hladin (%)</h2>
+        <div class="sliders">
+            <div class="slider-group">
+                <label><span>Dopamin (Odměna/Motivace)</span> <span class="val" id="valD">50</span></label>
+                <input type="range" id="slD" min="0" max="100" value="50" oninput="updateAll()">
+            </div>
+            <div class="slider-group">
+                <label><span>Serotonin (Klid/Spokojenost)</span> <span class="val" id="valS">50</span></label>
+                <input type="range" id="slS" min="0" max="100" value="50" oninput="updateAll()">
+            </div>
+            <div class="slider-group">
+                <label><span>Oxytocin (Důvěra/Pouto)</span> <span class="val" id="valO">50</span></label>
+                <input type="range" id="slO" min="0" max="100" value="50" oninput="updateAll()">
+            </div>
+            <div class="slider-group">
+                <label><span>Adrenalin (Akce/Energie)</span> <span class="val" id="valA">50</span></label>
+                <input type="range" id="slA" min="0" max="100" value="50" oninput="updateAll()">
+            </div>
+            <div class="slider-group">
+                <label><span>Kortizol (Stres/Hrozba)</span> <span class="val" id="valC">30</span></label>
+                <input type="range" id="slC" min="0" max="100" value="30" oninput="updateAll()">
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <h2>Bio-Hacking: Akční plán</h2>
+        <div class="advice-section" id="adviceContainer">
+            <!-- Dynamicky generované rady -->
+            
+            <div id="adv-lowD" class="advice-item">
+                <strong style="color: #2980b9;">Nízký Dopamin: Chybí tah na branku</strong>
+                Tělu chybí chemie odměny. Neplánuj teď velké aplikace, zamer se na mikro-výhry.
+                <ul>
+                    <li><strong>Akce:</strong> Ustel postel, ukliď si stůl. Mozeček potřebuje zažít rychlé "hotovo".</li>
+                    <li><strong>Pohyb:</strong> Krátká studená sprcha. Šokově zvedne dopamin na několik hodin.</li>
+                    <li><strong>Strava:</strong> Banány, mandle, maso (bílkoviny bohaté na L-tyrosin).</li>
+                </ul>
+            </div>
+
+            <div id="adv-lowS" class="advice-item success">
+                <strong style="color: #27ae60;">Nízký Serotonin: Úzkost a splín</strong>
+                Systém padá do δ (Deprese). Potřebujeme ukotvit vnitřní klid.
+                <ul>
+                    <li><strong>Akce:</strong> Běž ven na denní světlo, slunce je základní palivo pro serotonin. Večer reiki a meditace.</li>
+                    <li><strong>Pohyb:</strong> Rytmické kardio. Běž si zaběhat do lesa, pravidelné tempo zklidňuje mysl.</li>
+                    <li><strong>Strava:</strong> Ovesné vločky, hořká čokoláda, krůtí maso.</li>
+                </ul>
+            </div>
+
+            <div id="adv-lowO" class="advice-item oxy">
+                <strong style="color: #ff6b81;">Nízký Oxytocin: Pocit odpojení</strong>
+                Příliš mnoho času u kódu a Mercedesu. Potřebuješ lidské teplo.
+                <ul>
+                    <li><strong>Akce:</strong> Pevně obejmi ženu nebo dcerky. Aby se oxytocin spustil, objetí musí trvat déle než 20 vteřin!</li>
+                    <li><strong>Další:</strong> Zavolej příteli (ne textovka, slyšet hlas), pohlaď zvíře, pošli někomu upřímné poděkování.</li>
+                </ul>
+            </div>
+
+            <div id="adv-highC" class="advice-item alert">
+                <strong style="color: var(--alert);">Vysoký Kortizol: Přehřátí systému!</strong>
+                Nouzový stav, blížíme se k α (Mánie/Paranoia). Mozek si myslí, že tě honí tygr.
+                <ul>
+                    <li><strong>Akce:</strong> Zastav práci. Box breathing dýchání (4s nádech, 4s zádrž, 4s výdech, 4s zádrž).</li>
+                    <li><strong>Spánek:</strong> Absolutní priorita. Spustit noční režim, tma, ticho.</li>
+                    <li><strong>Stopka:</strong> Žádná káva, žádný alkohol, žádný stresující e-mail. Pusť si náš 90Hz uzemňující audio profil.</li>
+                </ul>
+            </div>
+
+            <div id="adv-lowA" class="advice-item">
+                <strong style="color: #f39c12;">Nízký Adrenalin: Absolutní letargie</strong>
+                Tělo je v režimu hibernace.
+                <ul>
+                    <li><strong>Pohyb:</strong> Tvrdý trénink! Dej si kickbox nebo těžké mrtvé tahy. Vyplaví se endorfiny a adrenalin nahodí motor.</li>
+                    <li><strong>Dech:</strong> Wim Hofova metoda dýchání (hluboká hyperventilace) probudí nervovou soustavu.</li>
+                </ul>
+            </div>
+            
+            <div id="adv-stable" class="advice-item calm" style="display:block;">
+                <strong style="color: #8e44ad;">Hladina je stabilizovaná (Stav γ)</strong>
+                Tvoje chemická polévka je v rovnováze. Ideální čas pro rodinu, kreativní kódování nebo klidný odpočinek. Udržuj tento kurz.
+            </div>
+
+        </div>
+    </div>
+
+    <button class="btn" onclick="alert('Uloženo do deníku P biPo Heal.')">ULOŽIT STAV</button>
+
+    <script>
+        // Inicializace Chart.js Pavučiny
+        const ctx = document.getElementById('neuroChart').getContext('2d');
+        const neuroChart = new Chart(ctx, {
+            type: 'radar',
+            data: {
+                labels: ['Dopamin', 'Serotonin', 'Oxytocin', 'Adrenalin', 'Kortizol'],
+                datasets: [{
+                    label: 'Aktuální hladina',
+                    data: [50, 50, 50, 50, 30],
+                    backgroundColor: 'rgba(212, 175, 55, 0.2)',
+                    borderColor: 'rgba(212, 175, 55, 1)',
+                    pointBackgroundColor: 'rgba(0, 229, 255, 1)',
+                    pointBorderColor: '#fff',
+                    pointHoverBackgroundColor: '#fff',
+                    pointHoverBorderColor: 'rgba(0, 229, 255, 1)',
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    r: {
+                        angleLines: { color: 'rgba(255, 255, 255, 0.1)' },
+                        grid: { color: 'rgba(255, 255, 255, 0.1)' },
+                        pointLabels: { color: '#f2f2f7', font: { size: 12, family: 'sans-serif' } },
+                        ticks: { display: false, min: 0, max: 100 }
+                    }
+                },
+                plugins: { legend: { display: false } }
+            }
+        });
+
+        function updateAll() {
+            // Načtení hodnot
+            const d = parseInt(document.getElementById('slD').value);
+            const s = parseInt(document.getElementById('slS').value);
+            const o = parseInt(document.getElementById('slO').value);
+            const a = parseInt(document.getElementById('slA').value);
+            const c = parseInt(document.getElementById('slC').value);
+
+            // Aktualizace textů vedle sliderů
+            document.getElementById('valD').innerText = d;
+            document.getElementById('valS').innerText = s;
+            document.getElementById('valO').innerText = o;
+            document.getElementById('valA').innerText = a;
+            document.getElementById('valC').innerText = c;
+
+            // Aktualizace grafu
+            neuroChart.data.datasets[0].data = [d, s, o, a, c];
+            
+            // Změna barvy pavučiny podle Kortizolu (pokud je nad 70, zčervená)
+            if(c > 70) {
+                neuroChart.data.datasets[0].backgroundColor = 'rgba(255, 61, 0, 0.2)';
+                neuroChart.data.datasets[0].borderColor = 'rgba(255, 61, 0, 1)';
+            } else {
+                neuroChart.data.datasets[0].backgroundColor = 'rgba(212, 175, 55, 0.2)';
+                neuroChart.data.datasets[0].borderColor = 'rgba(212, 175, 55, 1)';
+            }
+            neuroChart.update();
+
+            // Logika Bio-Hackingu (zobrazení správných rad)
+            document.querySelectorAll('.advice-item').forEach(el => el.style.display = 'none');
+            
+            let issues = 0;
+
+            if (d < 40) { document.getElementById('adv-lowD').style.display = 'block'; issues++; }
+            if (s < 40) { document.getElementById('adv-lowS').style.display = 'block'; issues++; }
+            if (o < 40) { document.getElementById('adv-lowO').style.display = 'block'; issues++; }
+            if (a < 30 && c < 50) { document.getElementById('adv-lowA').style.display = 'block'; issues++; }
+            if (c > 70) { document.getElementById('adv-highC').style.display = 'block'; issues++; }
+
+            if (issues === 0) {
+                document.getElementById('adv-stable').style.display = 'block';
+            }
+        }
+    </script>
+</body>
+</html>

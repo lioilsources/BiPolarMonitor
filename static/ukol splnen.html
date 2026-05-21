@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#0f172a">
+    <title>Klidová zóna</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/lucide/0.263.1/lucide.min.js"></script>
+    
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=Space+Mono:wght@400;700&display=swap');
+        body { font-family: 'Inter', sans-serif; background-color: #020617; color: #f8fafc; }
+        
+        .fade-in { animation: fadeIn 1.5s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Náš speciální hudební zápis */
+        .music-table { font-family: 'Space Mono', monospace; }
+        .music-cell { padding: 8px; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.1); }
+        .music-header { font-weight: bold; color: #a855f7; border-bottom: 2px solid #a855f7; padding-bottom: 8px; }
+        
+        .dot-1 { color: #60a5fa; font-weight: bold; }
+        .dot-2 { color: #34d399; font-weight: bold; letter-spacing: 2px; }
+        .dot-3 { color: #fbbf24; font-weight: bold; letter-spacing: 4px; }
+        .dot-4 { color: #f87171; font-weight: bold; letter-spacing: 6px; }
+        .rest { color: #475569; font-style: italic; }
+
+        .playing-row { background-color: rgba(168, 85, 247, 0.2); border-radius: 8px; transition: background-color 0.2s; }
+        
+        /* Plovoucí bubliny pro uvolnění */
+        .bubble {
+            position: fixed;
+            border-radius: 50%;
+            background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.01));
+            box-shadow: inset 0 0 20px rgba(255, 255, 255, 0.05);
+            pointer-events: none;
+            animation: float 20s infinite ease-in-out;
+            z-index: -1;
+        }
+        @keyframes float {
+            0%, 100% { transform: translateY(0) translateX(0); }
+            50% { transform: translateY(-100px) translateX(50px); }
+        }
+    </style>
+</head>
+<body class="min-h-screen pb-12 overflow-x-hidden relative">
+
+    <!-- Animované pozadí -->
+    <div class="bubble w-64 h-64 top-[10%] left-[10%] animation-delay-1000"></div>
+    <div class="bubble w-96 h-96 top-[40%] right-[5%] animation-delay-3000" style="animation-duration: 25s;"></div>
+    <div class="bubble w-48 h-48 bottom-[10%] left-[30%] animation-delay-5000" style="animation-duration: 18s;"></div>
+
+    <header class="px-6 py-8 text-center fade-in">
+        <h1 class="text-3xl font-light tracking-widest text-slate-300">DNEŠNÍ MISE <span class="font-bold text-purple-400">SPLNĚNA</span></h1>
+        <p class="text-sm opacity-50 mt-2">Vypněte mozek. Nyní vládne klid a vizuálno.</p>
+    </header>
+
+    <main class="max-w-2xl mx-auto p-4 space-y-12">
+        
+        <!-- Fotografie pro radost (Kočky a Příroda) -->
+        <section class="fade-in" style="animation-delay: 0.3s;">
+            <div class="grid grid-cols-2 gap-4">
+                <div class="relative group rounded-3xl overflow-hidden shadow-2xl border border-white/10 aspect-square">
+                    <img src="https://picsum.photos/seed/forest/600/600" alt="Hluboký les" class="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110">
+                    <div class="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent flex items-end p-4 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <p class="text-sm font-bold text-emerald-300"><i data-lucide="trees" class="inline w-4 h-4 mr-1"></i> Hluboký nádech</p>
+                    </div>
+                </div>
+                <div class="relative group rounded-3xl overflow-hidden shadow-2xl border border-white/10 aspect-square">
+                    <img src="https://picsum.photos/seed/cat2/600/600" alt="Kočka" class="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110 grayscale hover:grayscale-0">
+                    <div class="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent flex items-end p-4 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <p class="text-sm font-bold text-amber-300"><i data-lucide="cat" class="inline w-4 h-4 mr-1"></i> Terapie předením</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Náš hudební systém -->
+        <section class="fade-in bg-slate-900/50 p-6 rounded-3xl border border-slate-800 shadow-xl" style="animation-delay: 0.6s;">
+            <div class="flex flex-col md:flex-row items-center justify-between gap-6 mb-8">
+                <div>
+                    <h2 class="text-xl font-bold flex items-center gap-2"><i data-lucide="music-4" class="text-purple-400"></i> Naše první skladba</h2>
+                    <p class="text-xs opacity-60 mt-1">Zapsáno přesně podle vašeho systému (Tečky a Pauzy A-D)</p>
+                </div>
+                <button id="playBtn" onclick="toggleMusic()" class="px-8 py-4 bg-purple-600 hover:bg-purple-500 text-white rounded-2xl font-bold tracking-widest shadow-lg shadow-purple-900/50 flex items-center gap-2 transition-all active:scale-95">
+                    <i data-lucide="play" id="playIcon"></i> PŘEHRÁT
+                </button>
+            </div>
+
+            <!-- Vizuální zápis (5 sloupců, 20 řádků - ukázka prvních 10 pro kompaktnost) -->
+            <div class="overflow-x-auto">
+                <table class="w-full music-table text-sm">
+                    <thead>
+                        <tr>
+                            <th class="music-header w-1/5">C</th>
+                            <th class="music-header w-1/5">D</th>
+                            <th class="music-header w-1/5">E</th>
+                            <th class="music-header w-1/5">G</th>
+                            <th class="music-header w-1/5">A</th>
+                        </tr>
+                    </thead>
+                    <tbody id="music-score">
+                        <!-- Generováno přes JS pro zachování vašeho systému -->
+                    </tbody>
+                </table>
+            </div>
+            
+            <p class="text-[10px] text-center mt-6 text-slate-500 italic">"4 tečky je nejdelší tón a 1 tečka nejkratší. A=1 pauza, B=2, C=3, D=4."</p>
+        </section>
+
+        <div class="text-center opacity-30 text-xs pb-10">
+            Dnes jste byl skvělý. Odpočiňte si.
+        </div>
+
+    </main>
+
+    <script>
+        lucide.createIcons();
+
+        // Náš uložený zápis melodie podle zadání:
+        // C D E G A (Pentatonická relaxační stupnice)
+        // . = 1/4 note, .. = 2/4, ... = 3/4, .... = 4/4 (celá)
+        // Rests: A = 1, B = 2, C = 3, D = 4
+        
+        const composition = [
+            { c: '....', d: '', e: '', g: '', a: '' },      // 1. Dlouhé C
+            { c: '', d: 'A', e: '', g: '', a: '' },         // 2. Pauza 1
+            { c: '', d: '..', e: '', g: '', a: '' },        // 3. Střední D
+            { c: '', d: '', e: '.', g: '', a: '' },         // 4. Krátké E
+            { c: '', d: '', e: '', g: '...', a: '' },       // 5. Delší G
+            { c: 'B', d: '', e: '', g: '', a: '' },         // 6. Pauza 2
+            { c: '', d: '', e: '', g: '', a: '....' },      // 7. Dlouhé A
+            { c: '...', d: '', e: '', g: '', a: '' },       // 8. Delší C
+            { c: '', d: '.', e: '', g: '', a: '' },         // 9. Krátké D
+            { c: '', d: '', e: '....', g: '', a: '' },      // 10. Dlouhé E
+            { c: 'C', d: '', e: '', g: '', a: '' },         // 11. Pauza 3
+            { c: '', d: '', e: '', g: '..', a: '' },        // 12. Střední G
+            { c: '', d: '', e: '', g: '', a: '..' },        // 13. Střední A
+            { c: '....', d: '', e: '', g: '', a: '' },      // 14. Závěrečné dlouhé C
+            { c: 'D', d: '', e: '', g: '', a: '' }          // 15. Konec Pauza 4
+        ];
+
+        // Vykreslení tabulky
+        const tbody = document.getElementById('music-score');
+        composition.forEach((row, idx) => {
+            const tr = document.createElement('tr');
+            tr.id = `row-${idx}`;
+            
+            ['c', 'd', 'e', 'g', 'a'].forEach(tone => {
+                const td = document.createElement('td');
+                td.className = 'music-cell';
+                let val = row[tone];
+                
+                if (val.includes('.')) {
+                    td.innerHTML = `<span class="dot-${val.length}">${val}</span>`;
+                } else if (['A','B','C','D'].includes(val)) {
+                    td.innerHTML = `<span class="rest">${val}</span>`;
+                } else {
+                    td.innerHTML = '';
+                }
+                tr.appendChild(td);
+            });
+            tbody.appendChild(tr);
+        });
+
+        // --- WEB AUDIO API (Jednoduchý syntezátor) ---
+        let audioCtx;
+        let isPlaying = false;
+        let currentStep = 0;
+        let playInterval;
+
+        // Frekvence pro C4 pentatoniku
+        const freqs = { c: 261.63, d: 293.66, e: 329.63, g: 392.00, a: 440.00 };
+        const tempoMs = 600; // Základní délka jedné tečky (1 beat)
+
+        function playTone(tone, dots) {
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            
+            // Hezký měkký zvuk (Sine wave s obálkou)
+            osc.type = 'sine';
+            osc.frequency.value = freqs[tone];
+            
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            
+            const duration = dots * (tempoMs / 1000);
+            
+            osc.start();
+            // Fade in
+            gain.gain.setValueAtTime(0, audioCtx.currentTime);
+            gain.gain.linearRampToValueAtTime(0.3, audioCtx.currentTime + 0.1);
+            // Fade out
+            gain.gain.setValueAtTime(0.3, audioCtx.currentTime + duration - 0.2);
+            gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + duration);
+            
+            osc.stop(audioCtx.currentTime + duration);
+        }
+
+        function nextStep() {
+            if (currentStep >= composition.length) {
+                stopMusic();
+                return;
+            }
+
+            // Odznačení předchozího řádku
+            document.querySelectorAll('tr').forEach(r => r.classList.remove('playing-row'));
+            
+            // Zvýraznění aktuálního
+            const rowEl = document.getElementById(`row-${currentStep}`);
+            if (rowEl) rowEl.classList.add('playing-row');
+
+            const rowData = composition[currentStep];
+            let stepDurationMs = tempoMs; // Defaultní krok
+
+            let played = false;
+            let isRest = false;
+
+            // Zjistíme, co je na tomto řádku
+            for (let [tone, val] of Object.entries(rowData)) {
+                if (val.includes('.')) {
+                    playTone(tone, val.length);
+                    stepDurationMs = val.length * tempoMs;
+                    played = true;
+                } else if (['A','B','C','D'].includes(val)) {
+                    // Pauzy: A=1, B=2, C=3, D=4 beaty
+                    const restLengths = { 'A': 1, 'B': 2, 'C': 3, 'D': 4 };
+                    stepDurationMs = restLengths[val] * tempoMs;
+                    isRest = true;
+                }
+            }
+
+            currentStep++;
+            playInterval = setTimeout(nextStep, stepDurationMs);
+        }
+
+        function toggleMusic() {
+            const btn = document.getElementById('playBtn');
+            const icon = document.getElementById('playIcon');
+            
+            if (isPlaying) {
+                stopMusic();
+            } else {
+                if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                if (audioCtx.state === 'suspended') audioCtx.resume();
+                
+                isPlaying = true;
+                currentStep = 0;
+                btn.innerHTML = `<i data-lucide="square" class="mr-2"></i> ZASTAVIT`;
+                btn.classList.replace('bg-purple-600', 'bg-red-600');
+                btn.classList.replace('hover:bg-purple-500', 'hover:bg-red-500');
+                lucide.createIcons();
+                nextStep();
+            }
+        }
+
+        function stopMusic() {
+            isPlaying = false;
+            clearTimeout(playInterval);
+            document.querySelectorAll('tr').forEach(r => r.classList.remove('playing-row'));
+            
+            const btn = document.getElementById('playBtn');
+            btn.innerHTML = `<i data-lucide="play" class="mr-2"></i> PŘEHRÁT`;
+            btn.classList.replace('bg-red-600', 'bg-purple-600');
+            btn.classList.replace('hover:bg-red-500', 'hover:bg-purple-500');
+            lucide.createIcons();
+        }
+
+    </script>
+</body>
+</html>

@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cesta do Spánku</title>
+    <style>
+        :root {
+            --barva-pozadi: #000c1e; /* Hluboká modrá pro klid */
+            --barva-textu: #ffffff;
+            --barva-textu-sekundarni: #b0c4de;
+            --akcent-barva: #8a2be2; /* Jemná fialová */
+            --barva-tlacitka: #2f4f4f;
+            --pismo-hlavni: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            font-family: var(--pismo-hlavni);
+            background-color: var(--barva-pozadi);
+            color: var(--barva-textu);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            text-align: center;
+        }
+
+        .container {
+            width: 90%;
+            max-width: 800px;
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.6);
+            border-radius: 15px;
+            box-shadow: 0 0 15px rgba(255, 255, 255, 0.1);
+        }
+
+        h1 {
+            font-size: 2.5em;
+            color: var(--barva-textu-sekundarni);
+            margin-bottom: 20px;
+        }
+
+        h2 {
+            color: var(--barva-textu);
+            border-bottom: 2px solid var(--akcent-barva);
+            padding-bottom: 10px;
+            margin-top: 30px;
+        }
+
+        p, li {
+            font-size: 1.1em;
+            line-height: 1.6;
+            margin-bottom: 15px;
+        }
+
+        ul {
+            list-style-type: none;
+            padding: 0;
+            text-align: left;
+        }
+
+        li {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 5px;
+        }
+
+        .highlight {
+            color: var(--akcent-barva);
+            font-weight: bold;
+        }
+
+        /* Sekce s motýly */
+        #butterfly-section {
+            position: relative;
+            height: 200px; /* Upravená výška pro sekci */
+            overflow: hidden;
+            background: radial-gradient(circle, rgba(20,20,50,1) 0%, rgba(0,10,30,1) 100%);
+            border-radius: 10px;
+            margin-bottom: 30px;
+        }
+
+        .butterfly {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background-color: #add8e6; /* Světle modrá */
+            border-radius: 50%; /* Jednoduchý tvar motýla */
+            opacity: 0.8;
+            pointer-events: none;
+        }
+
+        /* Animace pro motýly */
+        @keyframes fly {
+            0% { transform: translate(0, 0) scale(1) rotate(0deg); opacity: 0.8; }
+            50% { transform: translate(100px, -50px) scale(1.2) rotate(45deg); opacity: 1; }
+            100% { transform: translate(200px, 0) scale(1) rotate(90deg); opacity: 0.8; }
+        }
+
+        #techniky-sekce button {
+            background-color: var(--barva-tlacitka);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            font-size: 1.1em;
+            cursor: pointer;
+            border-radius: 5px;
+            margin: 10px;
+        }
+
+        #techniky-sekce button:hover {
+            background-color: #406969;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 10;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.8);
+            padding-top: 60px;
+        }
+
+        .modal-content {
+            background-color: #1a1a1a;
+            margin: 5% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+            border-radius: 10px;
+        }
+
+        .close-button {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .close-button:hover,
+        .close-button:focus {
+            color: white;
+            text-decoration: none;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Cesta do Spánku</h1>
+
+        <div id="butterfly-section">
+            <p style="padding-top: 80px; font-size: 1.3em;">Uvolněte se s motýly...</p>
+        </div>
+
+        <section>
+            <h2>Vojenská Technika Rychlého Usínání</h2>
+            <p>Tato technika, údajně vyvinutá pro americké válečné piloty, má za cíl navodit spánek do dvou minut. Je to proces relaxace těla a mysli.</p>
+            <ul>
+                <li><span class="highlight">Uvolněte obličej:</span> Začněte čelem, uvolněte svaly kolem očí, čelisti a jazyka. Dýchejte pomalu a zhluboka.</li>
+                <li><span class="highlight">Uvolněte ramena a paže:</span> Spusťte ramena co nejníže. Nechte paže volně klesnout podél těla.</li>
+                <li><span class="highlight">Uvolněte nohy:</span> Postupně uvolňujte stehna, lýtka a chodidla. Ciťte, jak vaše tělo těžkne.</li>
+                <li><span class="highlight">Vyčistěte mysl:</span> Po dobu 10 sekund se snažte na nic nemyslet. Můžete si v duchu opakovat: „Nemysli, nemysli, nemysli.“ nebo si představovat klidné místo (např. pláž nebo tichou místnost).</li>
+            </ul>
+        </section>
+
+        <section id="techniky-sekce">
+            <h2>Techniky z NASA pro Kvalitní Spánek</h2>
+            <p>NASA vyvinula několik strategií a technik k podpoře kvalitního spánku astronautů ve vesmíru, kde je denní cyklus narušen.</p>
+            
+            <button onclick="openModal('autovizualizace')">Autovizualizace</button>
+            <button onclick="openModal('rytmicke-dychani')">Rytmické Dýchání (4-7-8)</button>
+        </section>
+    </div>
+
+    <div id="autovizualizace-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-button" onclick="closeModal('autovizualizace')">&times;</span>
+            <h3>Autovizualizace</h3>
+            <p>Tato technika NASA pomáhá uvolnit mysl prostřednictvím vizuálních představ.</p>
+            <ul>
+                <li>Zavřete oči.</li>
+                <li>Představte si klidné prostředí, jako je tichý les, klidná pláž nebo i hluboký vesmír s hvězdami.</li>
+                <li>Zaměřte se na detaily: zvuk vln, vůni lesa, klid vesmíru.</li>
+                <li>Představte si, jak se vaše tělo v tomto prostředí cítí v bezpečí a uvolněně.</li>
+            </ul>
+        </div>
+    </div>
+
+    <div id="rytmicke-dychani-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-button" onclick="closeModal('rytmicke-dychani')">&times;</span>
+            <h3>Rytmické Dýchání (Technika 4-7-8)</h3>
+            <p>Jedná se o dechové cvičení navržené k uklidnění nervového systému.</p>
+            <ul>
+                <li>Položte špičku jazyka na tkáň těsně za horními předními zuby.</li>
+                <li>Úplně vydechněte ústy.</li>
+                <li>Zavřete ústa a klidně se nadechněte nosem po dobu <span class="highlight">čtyř sekund</span>.</li>
+                <li>Zadržte dech na <span class="highlight">sedm sekund</span>.</li>
+                <li>Úplně vydechněte ústy na <span class="highlight">osm sekund</span>.</li>
+                <li>Opakujte tento cyklus třikrát až čtyřikrát.</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        // Funkce pro vytvoření motýlů a jejich animaci
+        function createButterflies() {
+            const section = document.getElementById('butterfly-section');
+            for (let i = 0; i < 15; i++) {
+                const butterfly = document.createElement('div');
+                butterfly.classList.add('butterfly');
+                butterfly.style.left = Math.random() * section.offsetWidth + 'px';
+                butterfly.style.top = Math.random() * (section.offsetHeight - 50) + 'px';
+                butterfly.style.animation = `fly ${Math.random() * 5 + 3}s linear infinite`;
+                butterfly.style.animationDelay = Math.random() * 2 + 's';
+                section.appendChild(butterfly);
+            }
+        }
+
+        createButterflies();
+
+        // Funkce pro otevření a zavření modálních oken
+        function openModal(modalId) {
+            document.getElementById(modalId + '-modal').style.display = 'block';
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId + '-modal').style.display = 'none';
+        }
+
+        // Zavřít modální okno po kliknutí mimo obsah
+        window.onclick = function(event) {
+            if (event.target.classList.contains('modal')) {
+                event.target.style.display = 'none';
+            }
+        }
+    </script>
+</body>
+</html>
