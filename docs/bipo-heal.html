@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>P biPo heal 🐾 - V1</title>
+    <style>
+        :root { --p-color: #6c5ce7; --s-color: #f0f2f5; --danger: #ff7675; --cold: #74b9ff; --safe: #55efc4; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: var(--s-color); margin: 0; padding: 15px; color: #2d3436; }
+        .card { background: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); margin-bottom: 20px; }
+        h1 { color: var(--p-color); text-align: center; font-size: 1.5rem; }
+        h3 { color: #2d3436; border-bottom: 2px solid var(--s-color); padding-bottom: 5px; }
+        input[type="range"] { width: 100%; margin: 15px 0; accent-color: var(--p-color); }
+        input[type="text"], textarea { width: 100%; padding: 10px; border: 1px solid #dfe6e9; border-radius: 8px; box-sizing: border-box; font-family: inherit; margin-bottom: 15px; }
+        button { width: 100%; padding: 12px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; margin-top: 10px; transition: 0.3s; }
+        .btn-main { background: var(--p-color); color: white; }
+        .btn-sos { background: #d63031; color: white; margin-top: 20px; }
+        .btn-media { background: #dfe6e9; color: #2d3436; margin-bottom: 5px; }
+        .btn-print { background: #00b894; color: white; margin-top: 15px; }
+        .hidden { display: none !important; }
+        
+        .media-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
+        #support-img { width: 100%; max-height: 300px; object-fit: cover; border-radius: 10px; margin-top: 15px; display: none; }
+        
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 0.85rem; }
+        th, td { border-bottom: 1px solid #dfe6e9; padding: 10px; text-align: left; }
+        .row-mania { background-color: #ff767533; color: #d63031; font-weight: bold; }
+        .row-depre { background-color: #74b9ff33; color: #0984e3; font-weight: bold; }
+        .row-allergy { border-left: 4px solid #fdcb6e; }
+
+        .checkbox-group { display: flex; align-items: center; gap: 10px; margin: 15px 0; background: #fff3cd; padding: 10px; border-radius: 8px; }
+        .checkbox-group input { width: 20px; height: 20px; accent-color: #e17055; }
+
+        /* Tiskové styly pro čistý export */
+        @media print {
+            body { background: white; padding: 0; }
+            .no-print { display: none !important; }
+            .card { box-shadow: none; border: 1px solid #ccc; margin-bottom: 10px; page-break-inside: avoid; }
+            #history-section { display: block !important; }
+        }
+    </style>
+</head>
+<body>
+
+<div id="setup-screen" class="card">
+    <h1>Vítejte v P biPo heal</h1>
+    <p>Prvotní nastavení krizového plánu a zdravotní karty:</p>
+    
+    <label>Běžně užívané léky:</label>
+    <textarea id="med-reg" rows="2" placeholder="Např. stabilizátory nálady..."></textarea>
+    
+    <label>Doplňky stravy:</label>
+    <textarea id="med-sup" rows="2" placeholder="Např. Omega-3, Hořčík..."></textarea>
+
+    <label>Léky v případě nemoci / bolesti:</label>
+    <textarea id="med-sick" rows="2" placeholder="Např. Ibuprofen, antibiotika..."></textarea>
+
+    <label>Další nemoci a zdravotní problémy:</label>
+    <textarea id="health-issues" rows="2" placeholder="Např. astma, vysoký tlak..."></textarea>
+
+    <label>Krizový kontakt (číslo na lékaře):</label>
+    <input type="text" id="contact-input" placeholder="+420...">
+    
+    <button class="btn-main" onclick="saveSetup()">Uložit a začít</button>
+</div>
+
+<div id="main-screen" class="hidden">
+    <h1 class="no-print">P biPo heal 🐾</h1>
+    
+    <div class="card no-print">
+        <h3>Jak je vám právě teď?</h3>
+        <label>Nálada (1=Dno/Smutek, 10=Mánie/Přetlak):</label>
+        <input type="range" id="mood-slider" min="1" max="10" value="5">
+        
+        <label>Energie (1=Žádná, 10=Extrémní):</label>
+        <input type="range" id="energy-slider" min="1" max="10" value="5">
+        
+        <div class="checkbox-group">
+            <input type="checkbox" id="allergy-check">
+            <label for="allergy-check">Mám histaminovou nebo jinou alergickou reakci</label>
+        </div>
+
+        <button class="btn-main" onclick="saveEntry()">Uložit dnešní stav</button>
+    </div>
+
+    <div id="history-section" class="card">
+        <h3>Zdravotní přehled a Historie stavo</h3>
+        <div id="patient-info" style="display:none; font-size: 0.9rem; margin-bottom: 15px; padding: 10px; background: #f8f9fa; border-radius: 8px;"></div>
+        
+        <div style="overflow-x:auto;">
+            <table id="history-table">
+                <thead>
+                    <tr>
+                        <th>Datum</th>
+                        <th>Nálada</th>
+                        <th>Energie</th>
+                        <th>Alergie</th>
+                        <th>Stav</th>
+                    </tr>
+                </thead>
+                <tbody id="history-body"></tbody>
+            </table>
+        </div>
+        <button class="btn-print no-print" onclick="window.print()">🖨️ Vytisknout / Exportovat PDF pro lékaře</button>
+        <button class="no-print" onclick="clearHistory()" style="background:none; color:grey; font-size:0.7rem; margin-top:10px;">Smazat historii</button>
+    </div>
+
+    <div class="card no-print">
+        <h3>Vizuální podpora podle nálady</h3>
+        <p style="font-size:0.8rem; color:grey;">Obrázky se přizpůsobí aktuální poloze posuvníku Nálada.</p>
+        <div class="media-grid">
+            <button class="btn-media" onclick="showImage('cat')">🐈 Kočky</button>
+            <button class="btn-media" onclick="showImage('dinosaur')">🦖 Dinosauři</button>
+            <button class="btn-media" style="grid-column: span 2;" onclick="showImage('face')">👤 Krásné tváře</button>
+        </div>
+        <img id="support-img" src="" alt="Podpora">
+
+        <h3 style="margin-top:20px;">Hudební podpora</h3>
+        <div class="media-grid">
+            <button class="btn-media" onclick="window.open('https://www.youtube.com/results?search_query=relaxing+piano+music', '_blank')">🎹 Klavír</button>
+            <button class="btn-media" onclick="window.open('https://www.youtube.com/results?search_query=nature+sounds+relax', '_blank')">🌲 Příroda</button>
+            <button class="btn-media" onclick="window.open('https://www.youtube.com/results?search_query=lofi+hip+hop+radio', '_blank')">🎧 Lo-Fi</button>
+            <button class="btn-media" onclick="window.open('https://www.youtube.com/results?search_query=upbeat+happy+music', '_blank')">☀️ Povzbuzující</button>
+        </div>
+    </div>
+
+    <button class="btn-sos no-print" onclick="showSOS()">🆘 S.O.S. POMOCNÍK</button>
+</div>
+
+<div id="sos-screen" class="card hidden no-print">
+    <h2 style="color:#d63031">AKTIVNÍ S.O.S. PLÁN</h2>
+    <div id="sos-content"></div>
+    <button class="btn-main" onclick="hideSOS()">Zpět do aplikace</button>
+</div>
+
+<script>
+    // Správa dat pacienta
+    function saveSetup() {
+        const data = {
+            medReg: document.getElementById('med-reg').value,
+            medSup: document.getElementById('med-sup').value,
+            medSick: document.getElementById('med-sick').value,
+            issues: document.getElementById('health-issues').value,
+            contact: document.getElementById('contact-input').value
+        };
+        localStorage.setItem('p_medical_data', JSON.stringify(data));
+        location.reload();
+    }
+
+    if(localStorage.getItem('p_medical_data')) {
+        document.getElementById('setup-screen').classList.add('hidden');
+        document.getElementById('main-screen').classList.remove('hidden');
+        renderHistory();
+        renderPatientInfo();
+    }
+
+    function renderPatientInfo() {
+        const data = JSON.parse(localStorage.getItem('p_medical_data'));
+        const infoDiv = document.getElementById('patient-info');
+        infoDiv.style.display = 'block';
+        infoDiv.innerHTML = `
+            <strong>Běžné léky:</strong> ${data.medReg || '-'}<br>
+            <strong>Doplňky stravy:</strong> ${data.medSup || '-'}<br>
+            <strong>Při nemoci:</strong> ${data.medSick || '-'}<br>
+            <strong>Další potíže:</strong> ${data.issues || '-'}
+        `;
+    }
+
+    // Ukládání a historie
+    function saveEntry() {
+        const mood = parseInt(document.getElementById('mood-slider').value);
+        const energy = parseInt(document.getElementById('energy-slider').value);
+        const allergy = document.getElementById('allergy-check').checked;
+        const date = new Date().toLocaleString('cs-CZ', {day:'numeric', month:'numeric', hour:'2-digit', minute:'2-digit'});
+        
+        let history = JSON.parse(localStorage.getItem('p_history') || "[]");
+        history.unshift({ date, mood, energy, allergy });
+        localStorage.setItem('p_history', JSON.stringify(history));
+        
+        // Reset checkboxu
+        document.getElementById('allergy-check').checked = false;
+        renderHistory();
+        
+        if(mood >= 9) alert("VAROVÁNÍ: Nálada je velmi vysoká. Zvažte zklidnění (volba tiché hudby, ospalé obrázky).");
+        if(mood <= 2) alert("VAROVÁNÍ: Nálada je velmi nízká. Zkuste povzbuzující obrázky a hudbu.");
+    }
+
+    function renderHistory() {
+        const history = JSON.parse(localStorage.getItem('p_history') || "[]");
+        const body = document.getElementById('history-body');
+        body.innerHTML = "";
+        
+        history.forEach(entry => {
+            let rowClass = entry.allergy ? "row-allergy " : "";
+            let status = "Stabilní";
+            if(entry.mood >= 8) { rowClass += "row-mania"; status = "Mánie"; }
+            if(entry.mood <= 3) { rowClass += "row-depre"; status = "Deprese"; }
+            
+            body.innerHTML += `<tr class="${rowClass}">
+                <td>${entry.date}</td>
+                <td>${entry.mood}/10</td>
+                <td>${entry.energy}/10</td>
+                <td>${entry.allergy ? '⚠️ Ano' : '-'}</td>
+                <td>${status}</td>
+            </tr>`;
+        });
+    }
+
+    // Chytré obrázky podle nálady
+    function showImage(type) {
+        const mood = parseInt(document.getElementById('mood-slider').value);
+        const img = document.getElementById('support-img');
+        let keyword = "";
+
+        // Logika pana P: 1 = veselé/povzbuzující, 10 = smutné/ospalé/uklidňující
+        if (mood <= 4) {
+            keyword = "happy,funny,bright"; // Potřeba zvednout náladu
+        } else if (mood >= 7) {
+            keyword = "sleepy,calm,sad,dark"; // Potřeba uzemnit a zklidnit
+        } else {
+            keyword = "cute,nature"; // Neutrální
+        }
+
+        // Využití LOREM FLICKR API pro generování náhodných tematických fotek
+        const randomHash = new Date().getTime();
+        img.src = `https://loremflickr.com/400/300/${type},${keyword}?random=${randomHash}`;
+        img.style.display = "block";
+    }
+
+    // SOS a System
+    function showSOS() {
+        const data = JSON.parse(localStorage.getItem('p_medical_data') || "{}");
+        const mood = document.getElementById('mood-slider').value;
+        let html = `<h3>Doporučení pro tuto chvíli:</h3>`;
+
+        if(mood >= 8) {
+            html += `<p style="color:#d63031">⚠️ <b>Náběh Mánie:</b> Vyhněte se hluku, jasným světlům. Zkuste volbu "Krásné tváře" (ospalé) a klavírní hudbu.</p>`;
+        } else if(mood <= 3) {
+            html += `<p style="color:#0984e3">⚠️ <b>Náběh Deprese:</b> Neizolujte se. Podívejte se na veselé dinosaury a zkuste malou aktivitu.</p>`;
+        } else {
+            html += `<p>Jste v relativně stabilní zóně. Dodržujte spánkový režim.</p>`;
+        }
+        
+        html += `<div style="background:#f1f2f6; padding:10px; border-radius:10px; margin:10px 0;">
+                    <b>Vaše SOS medikace:</b><br>${data.medSick || 'Nenastaveno'}</div>`;
+        if(data.contact) {
+            html += `<button class='btn-sos' onclick="window.location.href='tel:${data.contact}'">📞 VOLAT LÉKAŘE</button>`;
+        }
+        
+        document.getElementById('sos-content').innerHTML = html;
+        document.getElementById('main-screen').classList.add('hidden');
+        document.getElementById('sos-screen').classList.remove('hidden');
+    }
+
+    function hideSOS() {
+        document.getElementById('sos-screen').classList.add('hidden');
+        document.getElementById('main-screen').classList.remove('hidden');
+    }
+
+    function clearHistory() {
+        if(confirm("Opravdu smazat celou historii? Nastavení léků zůstane zachováno.")) {
+            localStorage.removeItem('p_history');
+            renderHistory();
+        }
+    }
+</script>
+</body>
+</html>
