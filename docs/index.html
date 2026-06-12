@@ -50,10 +50,12 @@
             transform: translateY(-4px);
             box-shadow: 0 14px 32px rgba(0,0,0,0.13);
         }
+        .card.odpocitavani { border-color: #1a4fa0; }
         .card.bipo { border-color: #6c5ce7; }
         .card.pms  { border-color: #f368e0; }
         .card .icon { font-size: 3rem; margin-bottom: 12px; }
         .card h2 { font-size: 1.3rem; margin-bottom: 6px; }
+        .card.odpocitavani h2 { color: #1a4fa0; }
         .card.bipo h2 { color: #6c5ce7; }
         .card.pms  h2 { color: #d63fa8; }
         .card p { color: #6c7a8a; font-size: 0.95rem; line-height: 1.5; }
@@ -65,6 +67,7 @@
             border-radius: 20px;
             margin-top: 12px;
         }
+        .card.odpocitavani .badge { background: #dce8ff; color: #1a4fa0; }
         .card.bipo .badge { background: #ede9ff; color: #6c5ce7; }
         .card.pms  .badge { background: #fde8f7; color: #d63fa8; }
     </style>
@@ -75,6 +78,13 @@
         <p class="subtitle">Vyberte aplikaci pro sledování zdraví</p>
 
         <div class="cards">
+            <a class="card odpocitavani" href="odpocitavani.html">
+                <div class="icon">🌙</div>
+                <h2>Zijemjenjednou – Odpočítávání měsíce</h2>
+                <p>Oáza klidu a pochopení. Sledování průběhu měsíce a vnitřního rytmu.</p>
+                <span class="badge">zijemjenjednou.cz</span>
+            </a>
+
             <a class="card bipo" href="bipo-heal.html">
                 <div class="icon">🐾</div>
                 <h2>P biPo Heal – Bipolární monitor</h2>
