@@ -61,7 +61,7 @@ dependencies:
 
   # Connectivity & Background
   connectivity_plus: ^6.0.3
-  workmanager: ^0.5.2
+  workmanager: ^0.6.0
 
 dev_dependencies:
   flutter_test:

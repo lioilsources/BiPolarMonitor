@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>P biPo Heal 🦋 - Ženské zdraví</title>
+    <style>
+        /* Ženská paleta: Růžové, pastelové a elegantní tóny */
+        :root { 
+            --p-color: #f368e0; /* Výrazná růžová */
+            --p-light: #ff9ff3; /* Světlá růžová */
+            --s-color: #fdf2f8; /* Velmi jemná pastelová na pozadí */
+            --danger: #ff4757; 
+            --cold: #70a1ff; 
+            --family: #c8d6e5; 
+            --text-dark: #2f3542;
+        }
+        
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: var(--s-color); margin: 0; padding: 15px; color: var(--text-dark); }
+        .card { background: white; padding: 20px; border-radius: 20px; box-shadow: 0 8px 15px rgba(243, 104, 224, 0.1); margin-bottom: 20px; border: 1px solid #ffeaa7; }
+        
+        h1 { color: var(--p-color); text-align: center; font-size: 1.6rem; margin-bottom: 5px; }
+        h1 span { font-size: 1.2rem; display: block; color: var(--p-light); font-weight: normal; margin-top: 5px; }
+        h3 { color: var(--p-color); border-bottom: 2px dashed var(--p-light); padding-bottom: 5px; font-weight: 600; }
+        
+        input[type="range"] { width: 100%; margin: 15px 0; accent-color: var(--p-color); }
+        input[type="text"], textarea, select { width: 100%; padding: 12px; border: 1px solid #f8a5c2; border-radius: 12px; box-sizing: border-box; font-family: inherit; margin-bottom: 15px; background: #fffcfd; color: var(--text-dark); }
+        select:focus, input:focus, textarea:focus { outline: none; border-color: var(--p-color); }
+        
+        button { width: 100%; padding: 14px; border: none; border-radius: 12px; cursor: pointer; font-weight: bold; margin-top: 10px; transition: 0.3s; font-size: 1rem; }
+        .btn-main { background: linear-gradient(135deg, var(--p-light), var(--p-color)); color: white; box-shadow: 0 4px 10px rgba(243, 104, 224, 0.3); }
+        .btn-main:hover { opacity: 0.9; transform: translateY(-1px); }
+        .btn-sos { background: linear-gradient(135deg, #ff6b81, #ff4757); color: white; margin-top: 20px; box-shadow: 0 4px 10px rgba(255, 71, 87, 0.3); }
+        .btn-media { background: #f8a5c2; color: white; margin-bottom: 5px; font-weight: normal; }
+        .btn-print { background: #f3a683; color: white; margin-top: 15px; }
+        
+        .hidden { display: none !important; }
+        
+        .media-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
+        #support-img { width: 100%; max-height: 300px; object-fit: cover; border-radius: 15px; margin-top: 15px; display: none; }
+        
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 0.85rem; }
+        th, td { border-bottom: 1px solid #f8a5c2; padding: 12px 8px; text-align: left; }
+        th { color: var(--p-color); font-weight: 600; }
+        .row-mania { background-color: #ffcccc; color: #c0392b; font-weight: bold; }
+        .row-depre { background-color: #dff9fb; color: #22a6b3; font-weight: bold; }
+
+        /* Biohacking checklist pro ženy */
+        .biohack-grid { display: grid; grid-template-columns: 1fr; gap: 10px; margin-bottom: 15px; }
+        .biohack-item { display: flex; align-items: center; gap: 10px; background: white; padding: 10px 15px; border-radius: 12px; border: 1px solid #f8a5c2; }
+        .biohack-item input[type="checkbox"] { width: 22px; height: 22px; accent-color: var(--p-color); cursor: pointer; }
+
+        /* Tiskové styly */
+        @media print {
+            body { background: white; padding: 0; }
+            .no-print { display: none !important; }
+            .card { box-shadow: none; border: 1px solid #ccc; margin-bottom: 10px; page-break-inside: avoid; }
+            #history-section { display: block !important; }
+        }
+    </style>
+</head>
+<body>
+
+<div id="setup-screen" class="card">
+    <h1>P biPo Heal 🦋<br><span>Zdraví • Rovnováha • Dlouhověkost</span></h1>
+    <p style="text-align: center; color: var(--p-color);">Vítejte ve svém bezpečném prostoru.</p>
+    
+    <label>Běžně užívané léky:</label>
+    <textarea id="med-reg" rows="2" placeholder="Např. stabilizátory..."></textarea>
+    
+    <label>Doplňky stravy (Biohacking):</label>
+    <textarea id="med-sup" rows="2" placeholder="Např. Magnezium, Maca, Železo..."></textarea>
+
+    <label>Další zdravotní specifika:</label>
+    <textarea id="health-issues" rows="2" placeholder="PCOS, štítná žláza, migrény..."></textarea>
+
+    <label>Krizový kontakt (lékař / blízký):</label>
+    <input type="text" id="contact-input" placeholder="+420...">
+    
+    <button class="btn-main" onclick="saveSetup()">Uložit a otevřít deník 🌸</button>
+</div>
+
+<div id="main-screen" class="hidden">
+    <h1 class="no-print">P biPo Heal 🦋</h1>
+    
+    <div class="card no-print">
+        <h3>Jak se dnes cítíte? 🌸</h3>
+        
+        <label>Fáze cyklu (Důležité pro kontext nálady):</label>
+        <select id="cycle-phase">
+            <option value="Menstruační (Zima)">🩸 Menstruační (Potřeba klidu)</option>
+            <option value="Folikulární (Jaro)">🌱 Folikulární (Rostoucí energie)</option>
+            <option value="Ovulační (Léto)">☀️ Ovulační (Vrchol energie)</option>
+            <option value="Luteální (Podzim)">🍂 Luteální (Zklidnění, PMS)</option>
+            <option value="Mimo cyklus / Menopauza">✨ Mimo cyklus / Menopauza</option>
+        </select>
+
+        <label>Nálada (1=Smutek/Vyčerpání, 10=Extrémní euforie):</label>
+        <input type="range" id="mood-slider" min="1" max="10" value="5">
+        
+        <label>Fyzická energie (1=Žádná, 10=Nezastavitelná):</label>
+        <input type="range" id="energy-slider" min="1" max="10" value="5">
+
+        <label>Soustředění / Mozková mlha (1=Zamlženo, 10=Křišťálově čistá mysl):</label>
+        <input type="range" id="focus-slider" min="1" max="10" value="5">
+    </div>
+
+    <div class="card no-print">
+        <h3>Můj dnešní Biohacking 🌿</h3>
+        <p style="font-size: 0.85rem; color: #7f8fa6;">Malé kroky pro velkou stabilitu hormonů a nálady.</p>
+        <div class="biohack-grid">
+            <label class="biohack-item"><input type="checkbox" id="bh-sun"> ☀️ Ranní světlo do očí (do 30 min po probuzení)</label>
+            <label class="biohack-item"><input type="checkbox" id="bh-cold"> 🧊 Studená sprcha / Oplach obličeje</label>
+            <label class="biohack-item"><input type="checkbox" id="bh-blue"> 👓 Omezení modrého světla před spaním</label>
+            <label class="biohack-item"><input type="checkbox" id="bh-move"> 🧘‍♀️ Laskavý pohyb (Jóga, procházka)</label>
+        </div>
+        <button class="btn-main" onclick="saveEntry()">Uložit dnešní záznam ✨</button>
+    </div>
+
+    <div id="history-section" class="card">
+        <h3>Můj deník a cykly 📖</h3>
+        <div style="overflow-x:auto;">
+            <table id="history-table">
+                <thead>
+                    <tr>
+                        <th>Datum</th>
+                        <th>Cyklus</th>
+                        <th>Nál.</th>
+                        <th>Energ.</th>
+                        <th>Mysl</th>
+                        <th>Biohacky</th>
+                    </tr>
+                </thead>
+                <tbody id="history-body"></tbody>
+            </table>
+        </div>
+        <button class="btn-print no-print" onclick="window.print()">🖨️ Exportovat deník pro terapii</button>
+    </div>
+
+    <div class="card no-print">
+        <h3>Vizuální pohlazení 🦋</h3>
+        <div class="media-grid">
+            <button class="btn-media" onclick="showImage('flowers,pastel')">🌸 Květiny</button>
+            <button class="btn-media" onclick="showImage('butterfly,nature')">🦋 Motýli</button>
+            <button class="btn-media" style="grid-column: span 2;" onclick="showImage('cute,animal')">🐾 Roztomilá zvířátka</button>
+        </div>
+        <img id="support-img" src="" alt="Podpora">
+
+        <h3 style="margin-top:20px;">Laskavá hudba 🎧</h3>
+        <div class="media-grid">
+            <button class="btn-media" onclick="window.open('https://www.youtube.com/results?search_query=healing+female+energy+frequency', '_blank')">✨ Ženská energie</button>
+            <button class="btn-media" onclick="window.open('https://www.youtube.com/results?search_query=hormone+balancing+music', '_blank')">🌿 Rovnováha</button>
+            <button class="btn-media" onclick="window.open('https://www.youtube.com/results?search_query=cozy+coffee+shop+ambience', '_blank')">☕ Kavárna (Lo-Fi)</button>
+            <button class="btn-media" onclick="window.open('https://www.youtube.com/results?search_query=deep+sleep+meditation+for+women', '_blank')">🌙 Hluboký spánek</button>
+        </div>
+    </div>
+
+    <button class="btn-sos no-print" onclick="showSOS()">🆘 Potřebuji pomoc</button>
+</div>
+
+<div id="sos-screen" class="card hidden no-print">
+    <h2 style="color:#ff4757">Záchranná síť 🦋</h2>
+    <div id="sos-content"></div>
+    <button class="btn-main" onclick="hideSOS()">Vrátit se zpět</button>
+</div>
+
+<script>
+    function saveSetup() {
+        const data = {
+            medReg: document.getElementById('med-reg').value,
+            medSup: document.getElementById('med-sup').value,
+            issues: document.getElementById('health-issues').value,
+            contact: document.getElementById('contact-input').value
+        };
+        localStorage.setItem('p_women_medical_data', JSON.stringify(data));
+        location.reload();
+    }
+
+    if(localStorage.getItem('p_women_medical_data')) {
+        document.getElementById('setup-screen').classList.add('hidden');
+        document.getElementById('main-screen').classList.remove('hidden');
+        renderHistory();
+    }
+
+    function saveEntry() {
+        const date = new Date().toLocaleString('cs-CZ', {day:'numeric', month:'numeric', hour:'2-digit', minute:'2-digit'});
+        const phase = document.getElementById('cycle-phase').value;
+        const mood = parseInt(document.getElementById('mood-slider').value);
+        const energy = parseInt(document.getElementById('energy-slider').value);
+        const focus = parseInt(document.getElementById('focus-slider').value);
+        
+        let bhCount = 0;
+        if(document.getElementById('bh-sun').checked) bhCount++;
+        if(document.getElementById('bh-cold').checked) bhCount++;
+        if(document.getElementById('bh-blue').checked) bhCount++;
+        if(document.getElementById('bh-move').checked) bhCount++;
+
+        let history = JSON.parse(localStorage.getItem('p_women_history') || "[]");
+        history.unshift({ date, phase, mood, energy, focus, bhCount });
+        localStorage.setItem('p_women_history', JSON.stringify(history));
+        
+        // Reset
+        ['bh-sun', 'bh-cold', 'bh-blue', 'bh-move'].forEach(id => document.getElementById(id).checked = false);
+        renderHistory();
+    }
+
+    function renderHistory() {
+        const history = JSON.parse(localStorage.getItem('p_women_history') || "[]");
+        const body = document.getElementById('history-body');
+        body.innerHTML = "";
+        
+        history.forEach(entry => {
+            let rowClass = "";
+            if(entry.mood >= 8) rowClass = "row-mania";
+            if(entry.mood <= 3) rowClass = "row-depre";
+            
+            // Extrakce emoji z fáze cyklu pro tabulku
+            let phaseEmoji = entry.phase.split(' ')[0]; 
+
+            body.innerHTML += `<tr class="${rowClass}">
+                <td>${entry.date}</td>
+                <td title="${entry.phase}">${phaseEmoji}</td>
+                <td>${entry.mood}</td>
+                <td>${entry.energy}</td>
+                <td>${entry.focus}</td>
+                <td>${entry.bhCount}/4 ✨</td>
+            </tr>`;
+        });
+    }
+
+    function showImage(keyword) {
+        const img = document.getElementById('support-img');
+        img.src = `https://loremflickr.com/400/300/${keyword}?random=${new Date().getTime()}`;
+        img.style.display = "block";
+    }
+
+    function showSOS() {
+        const data = JSON.parse(localStorage.getItem('p_women_medical_data') || "{}");
+        const mood = document.getElementById('mood-slider').value;
+        let html = `<h3>Zastavte se na nádech a výdech...</h3>`;
+
+        if(mood >= 8) {
+            html += `<p style="color:#ff4757">⚠️ <b>Máte velmi mnoho energie (Mánie):</b> Zkuste ztlumit světla, uvařte si meduňkový čaj a vyhněte se závažným rozhodnutím či nakupování.</p>`;
+        } else if(mood <= 3) {
+            html += `<p style="color:#70a1ff">⚠️ <b>Nálada je velmi nízko (Deprese):</b> Nejste v tom sama. Zkuste si jen sednout na čerstvý vzduch nebo si pusťte uklidňující hudbu z naší nabídky.</p>`;
+        }
+        
+        if(data.contact) {
+            html += `<button class='btn-sos' onclick="window.location.href='tel:${data.contact}'">📞 Zavolat pomoc (${data.contact})</button>`;
+        }
+        document.getElementById('sos-content').innerHTML = html;
+        document.getElementById('main-screen').classList.add('hidden');
+        document.getElementById('sos-screen').classList.remove('hidden');
+    }
+
+    function hideSOS() {
+        document.getElementById('sos-screen').classList.add('hidden');
+        document.getElementById('main-screen').classList.remove('hidden');
+    }
+</script>
+</body>
+</html>
