@@ -12,6 +12,9 @@ openai-whisper==20240930
 
 # Embeddings (cohesion scoring)
 sentence-transformers==3.0.1
+# NGC base image ships Keras 3 (for TF); Transformers' TF compat layer
+# eagerly imports tf_keras through CodeCarbonCallback, so we provide it.
+tf-keras==2.17.0
 
 # Video analysis
 mediapipe==0.10.14
