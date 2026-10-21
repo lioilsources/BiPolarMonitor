@@ -20,7 +20,6 @@ class RecordScreen extends ConsumerStatefulWidget {
 
 class _RecordScreenState extends ConsumerState<RecordScreen> {
   CameraController? _cameraController;
-  bool _cameraReady = false;
   int _countdown = 3;
   Timer? _countdownTimer;
 
@@ -38,7 +37,7 @@ class _RecordScreenState extends ConsumerState<RecordScreen> {
     );
     _cameraController = CameraController(front, ResolutionPreset.high, enableAudio: false);
     await _cameraController!.initialize();
-    if (mounted) setState(() => _cameraReady = true);
+    if (mounted) setState(() {});
     ref.read(recordProvider.notifier).startFlow(_cameraController!);
   }
 

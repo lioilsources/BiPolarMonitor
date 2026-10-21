@@ -1,5 +1,4 @@
 import 'dart:io';
-import 'dart:convert';
 import 'package:background_fetch/background_fetch.dart' as bgfetch;
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:drift/drift.dart';
