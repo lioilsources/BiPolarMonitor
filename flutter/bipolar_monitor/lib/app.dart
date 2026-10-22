@@ -18,7 +18,6 @@ class BipolarApp extends ConsumerWidget {
       maxScaleFactor: 2.0, // cap at 2× — prevents layout overflow on large settings
       child: Builder(
         builder: (ctx) {
-          final highContrast = MediaQuery.of(ctx).highContrast;
           return MaterialApp.router(
             title: 'BipolarMonitor',
             debugShowCheckedModeBanner: false,

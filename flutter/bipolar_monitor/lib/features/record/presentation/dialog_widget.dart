@@ -1,7 +1,6 @@
 /// BladeRunner-style dialog UI — shows one question at a time during recording.
 /// The user sees the question, speaks, then taps "Další" to advance.
 /// Question timings (start/end in recording seconds) are tracked for ML segmentation.
-import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../../../core/constants/app_colors.dart';
