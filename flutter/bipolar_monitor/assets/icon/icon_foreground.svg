@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 108 108" width="1024" height="1024"><defs>
+  <radialGradient id="bg" cx="50%" cy="42%" r="70%">
+    <stop offset="0" stop-color="#252a3a"/><stop offset="1" stop-color="#0F1117"/>
+  </radialGradient>
+  <linearGradient id="ring" x1="30" y1="28" x2="78" y2="80" gradientUnits="userSpaceOnUse">
+    <stop offset="0" stop-color="#7EB8A4"/><stop offset="0.5" stop-color="#A9B49A"/><stop offset="1" stop-color="#E8A87C"/>
+  </linearGradient>
+  <linearGradient id="wave" x1="36" y1="0" x2="72" y2="0" gradientUnits="userSpaceOnUse">
+    <stop offset="0" stop-color="#9FD3C0"/><stop offset="1" stop-color="#F2C3A0"/>
+  </linearGradient>
+  <radialGradient id="glow" cx="54" cy="54" r="24" gradientUnits="userSpaceOnUse">
+    <stop offset="0" stop-color="#7EB8A4" stop-opacity="0.16"/><stop offset="1" stop-color="#7EB8A4" stop-opacity="0"/>
+  </radialGradient>
+</defs><circle cx="54" cy="54" r="22" fill="url(#glow)"/><circle cx="54" cy="54" r="25" fill="none" stroke="url(#ring)" stroke-width="5"/><path d="M39 54 C44 46.2 49 46.2 54 54 S64 61.8 69 54" fill="none" stroke="url(#wave)" stroke-width="4.2" stroke-linecap="round"/></svg>
